@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>모자분리 공사요청 시스템</title>
+</head>
+<body>
+<script type="module">
+import { getSession } from './assets/js/auth.js';
+(async () => {
+  const session = await getSession();
+  window.location.href = session ? 'dashboard.html' : 'login.html';
+})();
+</script>
+</body>
+</html>

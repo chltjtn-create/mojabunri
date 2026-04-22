@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>대시보드 — 모자분리 공사요청</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <span class="logo">⚡ 모자분리 공사요청</span>
+  <nav>
+    <a href="dashboard.html">대시보드</a>
+    <a href="request-new.html">신규 접수</a>
+    <span id="nav-admin" style="display:none"><a href="admin.html">관리자</a></span>
+  </nav>
+  <div class="user-info">
+    <span id="user-info"></span>
+    <button class="btn-logout" onclick="logout()">로그아웃</button>
+  </div>
+</header>
+
+<div class="container">
+  <!-- 통계 카드 -->
+  <div class="stats-grid" id="stats-grid"></div>
+
+  <!-- 필터 바 -->
+  <div class="filter-bar">
+    <input type="text" id="search" placeholder="접수번호·신청자·한전고번 검색" style="width:240px" oninput="applyFilter()">
+    <select id="filter-type" onchange="applyFilter()">
+      <option value="">전체 유형</option>
+      <option value="신규">신규</option>
+      <option value="변경">변경</option>
+      <option value="해지">해지</option>
+    </select>
+    <select id="filter-status" onchange="applyFilter()">
+      <option value="">전체 상태</option>
+      <option value="접수">접수</option>
+      <option value="SKB검토중">SKB검토중</option>
+      <option value="2군진행">2군진행</option>
+      <option value="한전처리중">한전처리중</option>
+      <option value="완료">완료</option>
+    </select>
+    <button class="btn btn-secondary btn-sm" onclick="loadData()">새로고침</button>
+    <a href="request-new.html" class="btn btn-primary btn-sm">+ 신규 접수</a>
+  </div>
+
+  <!-- 칸반 보드 -->
+  <div class="kanban-board" id="kanban-board">
+    <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#6c757d;">불러오는 중...</div>
+  </div>
+</div>
+
+<script type="module">
+import { requireAuth, renderUserInfo, logout as _logout } from './assets/js/auth.js';
+import { fetchRequests } from './assets/js/requests.js';
+import { renderKanban, showToast } from './assets/js/ui.js';
+
+window.logout = _logout;
+
+let allRequests = [];
+let profile = null;
+
+(async () => {
+  profile = await requireAuth();
+  if (!profile) return;
+
+  renderUserInfo(profile);
+
+  if (profile.role === 'admin' || profile.role === 'skb_manager') {
+    document.getElementById('nav-admin').style.display = 'inline';
+  }
+
+  await loadData();
+})();
+
+window.loadData = async () => {
+  try {
+    allRequests = await fetchRequests();
+    renderStats(allRequests);
+    applyFilter();
+  } catch (e) {
+    showToast('데이터 로드 실패: ' + e.message, 'error');
+  }
+};
+
+window.applyFilter = () => {
+  const search = document.getElementById('search').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  const status = document.getElementById('filter-status').value;
+
+  const filtered = allRequests.filter(r => {
+    const matchSearch = !search ||
+      r.request_number?.toLowerCase().includes(search) ||
+      r.requester_name?.toLowerCase().includes(search) ||
+      r.kepco_number?.toLowerCase().includes(search) ||
+      r.building_name?.toLowerCase().includes(search);
+    const matchType = !type || r.request_type === type;
+    const matchStatus = !status || r.status === status;
+    return matchSearch && matchType && matchStatus;
+  });
+
+  document.getElementById('kanban-board').innerHTML = renderKanban(filtered);
+};
+
+function renderStats(data) {
+  const statuses = ['접수', 'SKB검토중', '2군진행', '한전처리중', '완료'];
+  const counts = {};
+  statuses.forEach(s => counts[s] = 0);
+  data.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
+
+  document.getElementById('stats-grid').innerHTML = [
+    { label: '전체', value: data.length, color: '#0052cc' },
+    { label: '접수', value: counts['접수'], color: '#6c757d' },
+    { label: 'SKB검토중', value: counts['SKB검토중'], color: '#0d6efd' },
+    { label: '2군진행', value: counts['2군진행'], color: '#fd7e14' },
+    { label: '한전처리중', value: counts['한전처리중'], color: '#dc3545' },
+    { label: '완료', value: counts['완료'], color: '#198754' },
+  ].map(s => `
+    <div class="stat-card">
+      <div class="stat-value" style="color:${s.color}">${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

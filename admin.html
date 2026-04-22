@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 — 모자분리 공사요청</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <span class="logo">⚡ 모자분리 공사요청</span>
+  <nav>
+    <a href="dashboard.html">대시보드</a>
+    <a href="admin.html" style="color:#fff;font-weight:600;">관리자</a>
+  </nav>
+  <div class="user-info">
+    <span id="user-info"></span>
+    <button class="btn-logout" onclick="logout()">로그아웃</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- 탭 -->
+  <div style="display:flex;gap:.5rem;margin-bottom:1.5rem;border-bottom:2px solid #e9ecef;">
+    <button class="tab-btn active" onclick="showTab('tab-users')">사용자 관리</button>
+    <button class="tab-btn" onclick="showTab('tab-assign')">담당자 배정</button>
+    <button class="tab-btn" onclick="showTab('tab-stats')">통계</button>
+  </div>
+
+  <!-- 사용자 관리 -->
+  <div id="tab-users">
+    <div class="section-header">
+      <div class="section-title">사용자 목록</div>
+      <button class="btn btn-primary btn-sm" onclick="showAddUser()">+ 사용자 추가</button>
+    </div>
+    <div class="card">
+      <table style="width:100%;border-collapse:collapse;font-size:.875rem;">
+        <thead>
+          <tr style="border-bottom:2px solid #e9ecef;">
+            <th style="text-align:left;padding:.5rem;">이름</th>
+            <th style="text-align:left;padding:.5rem;">이메일</th>
+            <th style="text-align:left;padding:.5rem;">부서</th>
+            <th style="text-align:left;padding:.5rem;">역할</th>
+            <th style="text-align:left;padding:.5rem;">가입일</th>
+            <th style="padding:.5rem;"></th>
+          </tr>
+        </thead>
+        <tbody id="user-table-body">
+          <tr><td colspan="6" style="text-align:center;padding:2rem;color:#6c757d;">불러오는 중...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 담당자 배정 -->
+  <div id="tab-assign" style="display:none;">
+    <div class="section-header">
+      <div class="section-title">담당자 미배정 건</div>
+      <button class="btn btn-secondary btn-sm" onclick="loadUnassigned()">새로고침</button>
+    </div>
+    <div id="unassigned-list"></div>
+  </div>
+
+  <!-- 통계 -->
+  <div id="tab-stats" style="display:none;">
+    <div class="stats-grid" id="admin-stats"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+      <div class="card">
+        <div class="card-title">유형별 현황</div>
+        <canvas id="chart-type" height="200"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">상태별 현황</div>
+        <canvas id="chart-status" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 사용자 역할 변경 모달 -->
+<div id="modal-role" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;">
+  <div class="card" style="width:360px;">
+    <div class="card-title">역할 변경</div>
+    <input type="hidden" id="role-user-id">
+    <div class="form-group">
+      <label class="form-label">역할</label>
+      <select id="role-select" class="form-control">
+        <option value="requester">요청자</option>
+        <option value="skb_manager">SKB담당자</option>
+        <option value="partner_bp">협력사</option>
+        <option value="admin">관리자</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-role')">취소</button>
+      <button class="btn btn-primary" onclick="saveRole()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 담당자 배정 모달 -->
+<div id="modal-assign" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;">
+  <div class="card" style="width:400px;">
+    <div class="card-title">담당자 배정 — <span id="assign-req-number"></span></div>
+    <input type="hidden" id="assign-req-id">
+    <div class="form-group">
+      <label class="form-label">SKB 담당자</label>
+      <select id="assign-skb" class="form-control"><option value="">미배정</option></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">협력사 (2군 BP)</label>
+      <select id="assign-bp" class="form-control"><option value="">미배정</option></select>
+    </div>
+    <div style="display:flex;gap:.5rem;justify-content:flex-end;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-assign')">취소</button>
+      <button class="btn btn-primary" onclick="saveAssign()">배정 저장</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-btn { background: none; border: none; padding: .6rem 1rem; cursor: pointer; font-size: .9rem; color: #6c757d; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+.tab-btn.active { color: #0052cc; border-bottom-color: #0052cc; font-weight: 600; }
+</style>
+
+<script type="module">
+import { requireAuth, renderUserInfo, logout as _logout } from './assets/js/auth.js';
+import { supabase } from './assets/js/supabase-client.js';
+import { fetchRequests, updateRequest } from './assets/js/requests.js';
+import { showToast, showLoading, formatDate, formatMoney, ROLE_LABELS, renderStatusBadge, renderTypeBadge } from './assets/js/ui.js';
+
+window.logout = _logout;
+
+let profile = null;
+let allUsers = [];
+let skbManagers = [];
+let partnerBps = [];
+
+(async () => {
+  profile = await requireAuth(['admin', 'skb_manager']);
+  if (!profile) return;
+  renderUserInfo(profile);
+  await Promise.all([loadUsers(), loadUnassigned()]);
+})();
+
+async function loadUsers() {
+  const { data, error } = await supabase.from('profiles').select('*').order('created_at');
+  if (error) { showToast('사용자 로드 실패', 'error'); return; }
+  allUsers = data;
+  skbManagers = data.filter(u => u.role === 'skb_manager' || u.role === 'admin');
+  partnerBps = data.filter(u => u.role === 'partner_bp');
+  renderUsers(data);
+}
+
+function renderUsers(users) {
+  const tbody = document.getElementById('user-table-body');
+  if (!users.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:#6c757d;">사용자 없음</td></tr>'; return; }
+  tbody.innerHTML = users.map(u => `
+    <tr style="border-bottom:1px solid #e9ecef;">
+      <td style="padding:.5rem;">${u.full_name}</td>
+      <td style="padding:.5rem;">${u.email}</td>
+      <td style="padding:.5rem;">${u.department || '-'}</td>
+      <td style="padding:.5rem;"><span class="role-badge role-${u.role}">${ROLE_LABELS[u.role] || u.role}</span></td>
+      <td style="padding:.5rem;">${formatDate(u.created_at)}</td>
+      <td style="padding:.5rem;">
+        ${profile.role === 'admin' ? `<button class="btn btn-secondary btn-sm" onclick="openRoleModal('${u.id}','${u.role}')">역할 변경</button>` : ''}
+      </td>
+    </tr>
+  `).join('');
+}
+
+window.loadUnassigned = async () => {
+  const reqs = await fetchRequests();
+  const unassigned = reqs.filter(r => !r.assigned_skb_manager_id || !r.assigned_partner_bp_id);
+  const el = document.getElementById('unassigned-list');
+  if (!unassigned.length) { el.innerHTML = '<div class="card" style="text-align:center;color:#198754;padding:2rem;">모든 건에 담당자가 배정되어 있습니다.</div>'; return; }
+  el.innerHTML = unassigned.map(r => `
+    <div class="card" style="margin-bottom:.75rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+      <div>
+        <span style="font-weight:600;">${r.request_number}</span>
+        ${renderTypeBadge(r.request_type)} ${renderStatusBadge(r.status)}
+        <span style="font-size:.85rem;color:#6c757d;margin-left:.5rem;">${r.requester_name} (${r.requester_org})</span>
+      </div>
+      <div style="font-size:.82rem;color:#6c757d;">
+        SKB: ${r.skb_manager?.full_name || '<b style="color:#dc3545">미배정</b>'} &nbsp;|&nbsp;
+        BP: ${r.partner_bp?.full_name || '<b style="color:#dc3545">미배정</b>'}
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openAssignModal('${r.id}','${r.request_number}','${r.assigned_skb_manager_id||''}','${r.assigned_partner_bp_id||''}')">배정</button>
+    </div>
+  `).join('');
+};
+
+window.showTab = (id) => {
+  ['tab-users','tab-assign','tab-stats'].forEach(t => {
+    document.getElementById(t).style.display = t === id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['tab-users','tab-assign','tab-stats'][i] === id);
+  });
+  if (id === 'tab-stats') loadStats();
+};
+
+async function loadStats() {
+  const reqs = await fetchRequests();
+  const types = { '신규':0,'변경':0,'해지':0 };
+  const statuses = { '접수':0,'SKB검토중':0,'2군진행':0,'한전처리중':0,'완료':0 };
+  let totalOpex = 0, totalCapex = 0;
+  reqs.forEach(r => {
+    if (types[r.request_type] !== undefined) types[r.request_type]++;
+    if (statuses[r.status] !== undefined) statuses[r.status]++;
+    totalOpex += Number(r.opex_amount || 0);
+    totalCapex += Number(r.capex_amount || 0);
+  });
+
+  document.getElementById('admin-stats').innerHTML = [
+    { label: '전체 건수', value: reqs.length },
+    { label: '완료', value: statuses['완료'] },
+    { label: '진행중', value: reqs.length - statuses['완료'] - statuses['접수'] },
+    { label: '총 OPEX', value: formatMoney(totalOpex) },
+    { label: '총 CAPEX', value: formatMoney(totalCapex) },
+  ].map(s => `<div class="stat-card"><div class="stat-value" style="font-size:1.3rem;">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  const Chart = (await import('https://cdn.jsdelivr.net/npm/chart.js@4/+esm')).default;
+  Chart.register(...(await import('https://cdn.jsdelivr.net/npm/chart.js@4/+esm')).registerables);
+
+  new Chart(document.getElementById('chart-type'), { type: 'doughnut', data: { labels: Object.keys(types), datasets: [{ data: Object.values(types), backgroundColor: ['#0052cc','#fd7e14','#dc3545'] }] } });
+  new Chart(document.getElementById('chart-status'), { type: 'bar', data: { labels: Object.keys(statuses), datasets: [{ data: Object.values(statuses), backgroundColor: ['#6c757d','#0d6efd','#fd7e14','#dc3545','#198754'] }] }, options: { plugins: { legend: { display: false } } } });
+}
+
+window.openRoleModal = (userId, currentRole) => {
+  document.getElementById('role-user-id').value = userId;
+  document.getElementById('role-select').value = currentRole;
+  document.getElementById('modal-role').style.display = 'flex';
+};
+
+window.saveRole = async () => {
+  const userId = document.getElementById('role-user-id').value;
+  const role = document.getElementById('role-select').value;
+  showLoading(true);
+  const { error } = await supabase.from('profiles').update({ role }).eq('id', userId);
+  showLoading(false);
+  if (error) { showToast('저장 실패: ' + error.message, 'error'); return; }
+  showToast('역할 변경 완료');
+  closeModal('modal-role');
+  await loadUsers();
+};
+
+window.openAssignModal = (reqId, reqNumber, skbId, bpId) => {
+  document.getElementById('assign-req-id').value = reqId;
+  document.getElementById('assign-req-number').textContent = reqNumber;
+  const skbSel = document.getElementById('assign-skb');
+  const bpSel = document.getElementById('assign-bp');
+  skbSel.innerHTML = '<option value="">미배정</option>' + allUsers.filter(u => ['admin','skb_manager'].includes(u.role)).map(u => `<option value="${u.id}" ${u.id===skbId?'selected':''}>${u.full_name}</option>`).join('');
+  bpSel.innerHTML = '<option value="">미배정</option>' + allUsers.filter(u => u.role === 'partner_bp').map(u => `<option value="${u.id}" ${u.id===bpId?'selected':''}>${u.full_name}</option>`).join('');
+  document.getElementById('modal-assign').style.display = 'flex';
+};
+
+window.saveAssign = async () => {
+  const reqId = document.getElementById('assign-req-id').value;
+  const skb = document.getElementById('assign-skb').value || null;
+  const bp = document.getElementById('assign-bp').value || null;
+  showLoading(true);
+  try {
+    await updateRequest(reqId, { assigned_skb_manager_id: skb, assigned_partner_bp_id: bp });
+    showToast('배정 완료');
+    closeModal('modal-assign');
+    await loadUnassigned();
+  } catch(e) { showToast('배정 실패: ' + e.message, 'error'); }
+  finally { showLoading(false); }
+};
+
+window.showAddUser = () => { showToast('Supabase 대시보드 Authentication → Users → Add user 에서 직접 추가하세요.', 'warning'); };
+window.closeModal = (id) => { document.getElementById(id).style.display = 'none'; };
+</script>
+</body>
+</html>
