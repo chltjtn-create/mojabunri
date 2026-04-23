@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>공사 신청 — SKB 모자분리 공사요청</title>
   <link rel="stylesheet" href="assets/css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://cdn.emailjs.com/browser/4/dist/email.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   <style>
     .form-section { margin-bottom: .85rem; padding-bottom: .85rem; border-bottom: 1px solid #e9ecef; }
     .form-section:last-of-type { border-bottom: none; }
@@ -36,6 +37,21 @@
 </header>
 
 <div class="container" style="max-width:900px;">
+  <!-- 엑셀 일괄 접수 섹션 -->
+  <div class="card" style="margin-bottom:1.5rem; background:#f8f9ff; border:1px dashed #0052cc;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <h3 style="font-size:.9rem; font-weight:700; color:#0052cc; margin-bottom:.2rem;">📊 대량 접수 (엑셀 업로드)</h3>
+        <p style="font-size:.78rem; color:#666; margin:0;">여러 건의 공사를 엑셀 파일로 한 번에 접수할 수 있습니다.</p>
+      </div>
+      <div style="display:flex; gap:.5rem;">
+        <button class="btn btn-secondary btn-sm" onclick="downloadExcelTemplate()">📁 양식 다운로드</button>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('excel-input').click()">📤 엑셀 업로드</button>
+        <input type="file" id="excel-input" accept=".xlsx, .xls" style="display:none" onchange="handleExcelUpload(this)">
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
       <h2 style="font-size:1rem;font-weight:700;">공사 신청 접수</h2>
@@ -89,7 +105,7 @@
           <div id="low-voltage-wrap" style="display:none;">
             <label style="cursor:pointer;display:flex;align-items:center;gap:.4rem;font-size:.82rem;">
               <input type="checkbox" id="is_low_voltage" style="accent-color:#0052cc;">
-              저압 케이스 (한전불입금 CAPEX 포함)
+              한전불입금 포함
             </label>
           </div>
         </div>
@@ -189,20 +205,20 @@
       </div>
     </div>
 
-    <!-- ⑤ 신청자 정보 -->
+    <!-- ⑤ 민원인 정보 -->
     <div class="form-section">
-      <div class="form-section-title">⑤ 신청자 정보 (건물 담당자)</div>
+      <div class="form-section-title">⑤ 민원인 정보 (건물 담당자)</div>
       <div class="form-grid-3">
         <div class="form-group">
-          <label class="form-label">신청자 이름 <span class="required">*</span></label>
+          <label class="form-label">민원인 이름 <span class="required">*</span></label>
           <input type="text" id="complainant_name" class="form-control" placeholder="예: 관리소장">
         </div>
         <div class="form-group">
-          <label class="form-label">신청자 연락처 <span class="required">*</span></label>
+          <label class="form-label">민원인 연락처 <span class="required">*</span></label>
           <input type="tel" id="complainant_phone" class="form-control" placeholder="02-123-4567">
         </div>
         <div class="form-group">
-          <label class="form-label">신청자 이메일 <span class="required">*</span></label>
+          <label class="form-label">민원인 이메일 <span class="required">*</span></label>
           <input type="email" id="complainant_email" class="form-control" placeholder="xxxx@naver.com">
         </div>
       </div>
@@ -219,7 +235,7 @@
             <option value="SKB">SKB</option>
             <option value="HNS">HNS</option>
             <option value="PTCE">PTCE</option>
-            <option value="기타(신청자)">기타(신청자)</option>
+            <option value="기타(민원인)">기타(민원인)</option>
           </select>
         </div>
         <div class="form-group">
@@ -412,9 +428,9 @@ window.submitRequest = async () => {
     [sv('billing_type'), '청구유형을 선택하세요.'],
     [v('breaker_location'), '차단기위치를 입력하세요.'],
     [v('meter_location'), '계량기위치를 입력하세요.'],
-    [v('complainant_name'), '신청자 이름을 입력하세요.'],
-    [v('complainant_phone'), '신청자 연락처를 입력하세요.'],
-    [v('complainant_email'), '신청자 이메일을 입력하세요.'],
+    [v('complainant_name'), '민원인 이름을 입력하세요.'],
+    [v('complainant_phone'), '민원인 연락처를 입력하세요.'],
+    [v('complainant_email'), '민원인 이메일를 입력하세요.'],
     [sv('requester_org'), '요청자 소속을 선택하세요.'],
     [v('requester_name'), '요청자 이름을 입력하세요.'],
     [v('requester_phone'), '요청자 연락처를 입력하세요.'],
@@ -493,6 +509,109 @@ window.submitRequest = async () => {
     errEl.style.display = 'block';
   }
 };
+
+// ──────────────────────────────────────────────────
+// 엑셀 일괄 업로드 로직
+// ──────────────────────────────────────────────────
+
+const EXCEL_HEADERS = [
+  '운용팀', '우선순위', '요청구분', '정보센터', '건물명', '건물주소', '건물유형', '건물코드', 
+  '동수', '세대수', '국사코드', '국사명', '장비설치일', '청구유형', '차단기위치', '계량기위치', 
+  '한전고객번호', 'CAPEX', '민원인이름', '민원인연락처', '민원인이메일', '요청자소속', '요청자이름', 
+  '요청자연락처', '요청자이메일', '특이사항'
+];
+
+window.downloadExcelTemplate = () => {
+  const data = [EXCEL_HEADERS, ['수원', '보통', '신규', '수원센터', '예시건물', '경기도 수원시...', '아파트', 'A00000000000001', '1동', '100', 'W1234', '수원국사', '2024-05-01', '정액제', '1층', '1층', '12-3456-7890', '1000000', '홍길동', '010-1234-5678', 'test@test.com', 'SKB', '김관리', '010-9999-8888', 'manager@sk.com', '비고내용']];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "신청양식");
+  XLSX.writeFile(wb, "모자분리_대량접수_양식.xlsx");
+};
+
+window.handleExcelUpload = async (input) => {
+  const file = input.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+
+      if (!rows.length) { alert('데이터가 없습니다.'); return; }
+      if (!confirm(`${rows.length}건의 데이터를 접수하시겠습니까?`)) { input.value = ''; return; }
+
+      await processBatchRequests(rows);
+    } catch (err) {
+      alert('파일 읽기 실패: ' + err.message);
+    } finally {
+      input.value = '';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+async function processBatchRequests(rows) {
+  const { supabase } = await import('./assets/js/supabase-client.js');
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  showLoading(true);
+  let successCount = 0;
+  let failCount = 0;
+
+  for (const row of rows) {
+    try {
+      const reqType = row['요청구분'] || '';
+      const isNew = reqType.includes('신규');
+      const dbType = isNew ? '신규' : reqType;
+
+      await createRequest({
+        request_number: '',
+        request_type: dbType,
+        requester_profile_id: session?.user?.id || null,
+        requester_name: row['요청자이름'] || '',
+        requester_org: row['요청자소속'] || '',
+        requester_phone: row['요청자연락처'] || '',
+        requester_email: row['요청자이메일'] || '',
+        kepco_number: row['한전고객번호'] || '',
+        building_code: row['건물코드'] || '',
+        building_name: row['건물명'] || '',
+        address_text: row['건물주소'] || '',
+        notes: row['특이사항'] || '',
+        capex_amount: parseInt(row['CAPEX'] || '0'),
+        is_low_voltage: false, // 엑셀은 기본값 false
+        priority: row['우선순위'] || '보통',
+        operation_team: row['운용팀'] || '',
+        info_center: row['정보센터'] || '',
+        building_type: row['건물유형'] || '',
+        building_dong: row['동수'] || '',
+        household_count: row['세대수'] || '',
+        gwangdanguksa_code: row['국사코드'] || '',
+        gwangdanguksa_name: row['국사명'] || '',
+        equipment_install_date: row['장비설치일'] || null,
+        billing_type: row['청구유형'] || '',
+        complainant_name: row['민원인이름'] || '',
+        complainant_phone: row['민원인연락처'] || '',
+        complainant_email: row['민원인이메일'] || '',
+        breaker_location: row['차단기위치'] || '',
+        meter_location: row['계량기위치'] || '',
+      });
+      successCount++;
+    } catch (e) {
+      console.error('Batch error:', e);
+      failCount++;
+    }
+  }
+
+  showLoading(false);
+  showToast(`일괄 접수 완료: 성공 ${successCount}건, 실패 ${failCount}건`);
+  if (successCount > 0) {
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+  }
+}
 </script>
 </body>
 </html>
