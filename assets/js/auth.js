@@ -9,24 +9,35 @@ export async function getProfile() {
   const session = await getSession();
   if (!session) return null;
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', session.user.id)
     .single();
+
+  if (error) {
+    console.error('getProfile error:', error.message);
+    return null;
+  }
   return data;
 }
 
 export async function requireAuth(allowedRoles = null) {
   const session = await getSession();
   if (!session) {
-    window.location.href = 'login.html';
+    if (!location.href.includes('login.html')) {
+      window.location.href = 'login.html';
+    }
     return null;
   }
 
   const profile = await getProfile();
   if (!profile) {
-    window.location.href = 'login.html';
+    // 프로필 없으면 세션 제거 후 로그인으로 (무한루프 방지)
+    await supabase.auth.signOut();
+    if (!location.href.includes('login.html')) {
+      window.location.href = 'login.html';
+    }
     return null;
   }
 
