@@ -29,7 +29,12 @@
 
 <header class="app-header">
   <span class="logo">⚡ SKB 모자분리 공사요청</span>
-  <nav><a href="dashboard.html">대시보드</a></nav>
+  <nav id="app-nav">
+    <a href="dashboard.html">대시보드</a>
+    <a href="request-new.html">모자분리접수</a>
+    <a href="admin.html" id="nav-admin" style="display:none">관리자</a>
+  </nav>
+  <script>(function(){var p=location.pathname.split('/').pop()||'dashboard.html';document.querySelectorAll('#app-nav a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('nav-active');});})();</script>
   <div class="user-info">
     <span id="user-info"></span>
     <button class="btn-logout" id="btn-logout" style="display:none" onclick="logout()">로그아웃</button>
@@ -372,6 +377,7 @@ window.logout = _logout;
       document.getElementById('requester_phone').value = profile.phone || '';
       if (profile.role === 'skb_manager' || profile.role === 'admin') {
         document.getElementById('requester_org').value = 'SKB';
+        document.getElementById('nav-admin').style.display = 'flex';
       }
     }
   }

@@ -25,11 +25,12 @@
 
 <header class="app-header">
   <span class="logo">⚡ SKB 모자분리 공사요청</span>
-  <nav>
+  <nav id="app-nav">
     <a href="dashboard.html">대시보드</a>
     <a href="request-new.html">모자분리접수</a>
-    <span id="nav-admin" style="display:none"><a href="admin.html">관리자</a></span>
+    <a href="admin.html" id="nav-admin" style="display:none">관리자</a>
   </nav>
+  <script>(function(){var p=location.pathname.split('/').pop()||'dashboard.html';document.querySelectorAll('#app-nav a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('nav-active');});})();</script>
   <div class="user-info">
     <span id="user-info"></span>
     <button class="btn-logout" onclick="logout()">로그아웃</button>
@@ -127,7 +128,7 @@ let currentView = 'kanban';
   if (!profile) return;
   renderUserInfo(profile);
   if (profile.role === 'admin' || profile.role === 'skb_manager') {
-    document.getElementById('nav-admin').style.display = 'inline';
+    document.getElementById('nav-admin').style.display = 'flex';
   }
   await loadData();
 })();

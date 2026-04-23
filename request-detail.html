@@ -3,14 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>공사 상세 — 모자분리 공사요청</title>
+  <title>공사 상세 — SKB 모자분리 공사요청</title>
   <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
 <header class="app-header">
-  <span class="logo">⚡ 모자분리 공사요청</span>
-  <nav><a href="dashboard.html">← 대시보드</a></nav>
+  <span class="logo">⚡ SKB 모자분리 공사요청</span>
+  <nav id="app-nav">
+    <a href="dashboard.html">대시보드</a>
+    <a href="request-new.html">모자분리접수</a>
+    <a href="admin.html" id="nav-admin" style="display:none">관리자</a>
+  </nav>
+  <script>(function(){var p=location.pathname.split('/').pop()||'dashboard.html';document.querySelectorAll('#app-nav a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('nav-active');});})();</script>
   <div class="user-info">
     <span id="user-info"></span>
     <button class="btn-logout" onclick="logout()">로그아웃</button>
@@ -39,9 +44,9 @@
     <div class="detail-grid">
       <!-- 좌측 -->
       <div>
-        <!-- 신청자 정보 -->
+        <!-- 민원인 정보 -->
         <div class="card" style="margin-bottom:1rem;">
-          <div class="card-title">신청자 정보</div>
+          <div class="card-title">민원인 정보</div>
           <div class="detail-field"><div class="label">소속</div><div class="value" id="d-org"></div></div>
           <div class="detail-field"><div class="label">이름</div><div class="value" id="d-name"></div></div>
           <div class="detail-field"><div class="label">연락처</div><div class="value" id="d-phone"></div></div>
