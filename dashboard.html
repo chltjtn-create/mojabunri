@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>대시보드 — 모자분리 공사요청</title>
+  <title>대시보드 — SKB 모자분리 공사요청</title>
   <link rel="stylesheet" href="assets/css/style.css">
   <style>
     .view-toggle { display:flex; gap:.4rem; }
@@ -24,10 +24,10 @@
 <body>
 
 <header class="app-header">
-  <span class="logo">⚡ 모자분리 공사요청</span>
+  <span class="logo">⚡ SKB 모자분리 공사요청</span>
   <nav>
     <a href="dashboard.html">대시보드</a>
-    <a href="request-new.html">신규 접수</a>
+    <a href="request-new.html">모자분리접수</a>
     <span id="nav-admin" style="display:none"><a href="admin.html">관리자</a></span>
   </nav>
   <div class="user-info">
@@ -42,7 +42,7 @@
 
   <!-- 필터 바 -->
   <div class="filter-bar">
-    <input type="text" id="search" placeholder="접수번호·건물명·신청자 검색" style="width:220px" oninput="applyFilter()">
+    <input type="text" id="search" placeholder="접수번호·건물명·민원인 검색" style="width:220px" oninput="applyFilter()">
     <select id="filter-type" onchange="applyFilter()">
       <option value="">전체 유형</option>
       <option value="신규">신규</option>
@@ -51,9 +51,9 @@
     </select>
     <select id="filter-status" onchange="applyFilter()">
       <option value="">전체 상태</option>
-      <option value="접수">접수</option>
-      <option value="SKB검토중">SKB검토중</option>
-      <option value="2군진행">2군진행</option>
+      <option value="접수">모자분리접수</option>
+      <option value="SKB검토중">SKB검토</option>
+      <option value="2군진행">BP사진행</option>
       <option value="한전처리중">한전처리중</option>
       <option value="완료">완료</option>
     </select>
@@ -63,7 +63,7 @@
       <option value="보통">보통</option>
     </select>
     <button class="btn btn-secondary btn-sm" onclick="loadData()">새로고침</button>
-    <a href="request-new.html" class="btn btn-primary btn-sm">+ 신규 접수</a>
+    <a href="request-new.html" class="btn btn-primary btn-sm">+ 모자분리접수</a>
     <div class="view-toggle" style="margin-left:auto;">
       <button class="view-btn active" id="btn-kanban" onclick="setView('kanban')">📋 칸반</button>
       <button class="view-btn" id="btn-list" onclick="setView('list')">☰ 리스트</button>
@@ -96,7 +96,7 @@
               <th>운용팀</th>
               <th>정보센터</th>
               <th>건물코드</th>
-              <th>신청자</th>
+              <th>민원인</th>
               <th>SKB담당</th>
               <th>OPEX</th>
               <th>CAPEX</th>
@@ -204,7 +204,7 @@ function renderList(data) {
 }
 
 window.exportExcel = () => {
-  const headers = ['접수번호','우선순위','유형','상태','건물명','운용팀','정보센터','건물코드','한전고번','신청자','연락처','SKB담당','OPEX','CAPEX','접수일'];
+  const headers = ['접수번호','우선순위','유형','상태','건물명','운용팀','정보센터','건물코드','한전고번','민원인','연락처','SKB담당','OPEX','CAPEX','접수일'];
   const search = document.getElementById('search').value.toLowerCase();
   const type = document.getElementById('filter-type').value;
   const status = document.getElementById('filter-status').value;
@@ -236,8 +236,8 @@ function renderStats(data) {
   document.getElementById('stats-grid').innerHTML = [
     { label: '전체', value: data.length, color: '#0052cc' },
     { label: '긴급', value: urgent, color: '#dc3545' },
-    { label: 'SKB검토중', value: counts['SKB검토중'], color: '#0d6efd' },
-    { label: '2군진행', value: counts['2군진행'], color: '#fd7e14' },
+    { label: 'SKB검토', value: counts['SKB검토중'], color: '#0d6efd' },
+    { label: 'BP사진행', value: counts['2군진행'], color: '#fd7e14' },
     { label: '한전처리중', value: counts['한전처리중'], color: '#e63946' },
     { label: '완료', value: counts['완료'], color: '#198754' },
   ].map(s => `
