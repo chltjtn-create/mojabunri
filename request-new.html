@@ -23,6 +23,7 @@
     .file-list-preview { margin-top: .4rem; display: flex; flex-direction: column; gap: .25rem; }
     .file-preview-item { font-size: .78rem; color: #495057; background: #f8f9fa; padding: .25rem .5rem; border-radius: 4px; display: flex; justify-content: space-between; }
     @media (max-width: 640px) { .form-grid-2, .form-grid-3, .form-grid-4 { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { #section-basic-grid { grid-template-columns: 1fr 1fr !important; } }
   </style>
 </head>
 <body>
@@ -66,7 +67,7 @@
     <!-- ① 기본 분류 -->
     <div class="form-section">
       <div class="form-section-title">① 기본 분류</div>
-      <div class="form-grid-4">
+      <div style="display:grid;grid-template-columns:80px 1fr 1fr 1.5fr 1fr;gap:.5rem .85rem;">
         <div class="form-group">
           <label class="form-label">본부</label>
           <input type="text" class="form-control" value="수남" readonly style="background:#f8f9fa;">
@@ -81,11 +82,8 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">우선순위 <span class="required">*</span></label>
-          <select id="priority" class="form-control">
-            <option value="보통">보통</option>
-            <option value="긴급">긴급</option>
-          </select>
+          <label class="form-label">정보센터 <span class="required">*</span></label>
+          <input type="text" id="info_center" class="form-control" placeholder="예: 수원, 강남">
         </div>
         <div class="form-group">
           <label class="form-label">요청구분 <span class="required">*</span></label>
@@ -97,22 +95,23 @@
             <option value="해지">해지</option>
           </select>
         </div>
-      </div>
-      <div class="form-grid-2" style="margin-top:.35rem;">
         <div class="form-group">
-          <label class="form-label">정보센터 <span class="required">*</span></label>
-          <input type="text" id="info_center" class="form-control" placeholder="예: 수원, 강남, 용인">
+          <label class="form-label">우선순위 <span class="required">*</span></label>
+          <select id="priority" class="form-control">
+            <option value="보통">보통</option>
+            <option value="긴급">긴급</option>
+          </select>
         </div>
-        <div class="form-group" style="display:flex;align-items:flex-end;gap:.5rem;">
-          <div id="opex-hint" style="display:none;font-size:.8rem;color:#0052cc;padding:.35rem 0;">
-            대관업무비(OPEX): <b id="opex-value"></b> 자동계산
-          </div>
-          <div id="low-voltage-wrap" style="display:none;">
-            <label style="cursor:pointer;display:flex;align-items:center;gap:.4rem;font-size:.82rem;">
-              <input type="checkbox" id="is_low_voltage" style="accent-color:#0052cc;">
-              한전불입금 포함
-            </label>
-          </div>
+      </div>
+      <div style="margin-top:.35rem;display:flex;gap:1rem;align-items:center;">
+        <div id="opex-hint" style="display:none;font-size:.8rem;color:#0052cc;">
+          대관업무비(OPEX): <b id="opex-value"></b> 자동계산
+        </div>
+        <div id="low-voltage-wrap" style="display:none;">
+          <label style="cursor:pointer;display:flex;align-items:center;gap:.4rem;font-size:.82rem;">
+            <input type="checkbox" id="is_low_voltage" style="accent-color:#0052cc;">
+            한전불입금 포함
+          </label>
         </div>
       </div>
     </div>
