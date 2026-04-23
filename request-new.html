@@ -33,6 +33,7 @@
   <nav id="app-nav">
     <a href="dashboard.html">대시보드</a>
     <a href="request-new.html">모자분리접수</a>
+    <a href="board.html">게시판</a>
     <a href="admin.html" id="nav-admin" style="display:none">관리자</a>
   </nav>
   <script>(function(){var p=location.pathname.split('/').pop()||'dashboard.html';document.querySelectorAll('#app-nav a').forEach(function(a){if(a.getAttribute('href')===p)a.classList.add('nav-active');});})();</script>
@@ -192,24 +193,9 @@
       </div>
     </div>
 
-    <!-- ④ 비용 정보 -->
+    <!-- ④ 민원인 정보 -->
     <div class="form-section">
-      <div class="form-section-title">④ 비용 정보</div>
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label class="form-label">CAPEX 공사금액 (원) <span class="required">*</span></label>
-          <input type="number" id="capex_amount" class="form-control" placeholder="0" min="0">
-          <p class="form-hint">자체 내역서 견적 금액. 저압 시 한전불입금 포함.</p>
-        </div>
-        <div class="form-group" style="display:flex;align-items:flex-end;">
-          <p class="form-hint" style="color:#0052cc;">※ 한전고객번호는 협력사가 모자분리 완료 후 상세 화면에서 입력합니다.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ⑤ 민원인 정보 -->
-    <div class="form-section">
-      <div class="form-section-title">⑤ 민원인 정보 (건물 담당자)</div>
+      <div class="form-section-title">④ 민원인 정보 (건물 담당자)</div>
       <div class="form-grid-3">
         <div class="form-group">
           <label class="form-label">민원인 이름 <span class="required">*</span></label>
@@ -228,7 +214,7 @@
 
     <!-- ⑥ 요청자 정보 -->
     <div class="form-section">
-      <div class="form-section-title">⑥ 요청자 정보</div>
+      <div class="form-section-title">⑤ 요청자 정보</div>
       <div class="form-grid-4">
         <div class="form-group">
           <label class="form-label">소속 <span class="required">*</span></label>
@@ -257,7 +243,7 @@
 
     <!-- ⑦ 메모 -->
     <div class="form-section">
-      <div class="form-section-title">⑦ 메모</div>
+      <div class="form-section-title">⑥ 메모</div>
       <div class="form-grid-2">
         <div class="form-group">
           <label class="form-label">특이사항 <span class="required">*</span></label>
@@ -272,7 +258,7 @@
 
     <!-- ⑧ 파일 첨부 -->
     <div class="form-section">
-      <div class="form-section-title">⑧ 파일 첨부</div>
+      <div class="form-section-title">⑦ 파일 첨부</div>
       <div class="form-grid-2">
         <div class="form-group">
           <label class="form-label">설치장비 List <span class="required">*</span></label>
@@ -468,7 +454,6 @@ window.submitRequest = async () => {
       building_name: v('building_name'),
       address_text: v('address_text'),
       notes: v('notes'),
-      capex_amount: parseInt(sv('capex_amount') || '0'),
       is_low_voltage: isNew ? document.getElementById('is_low_voltage').checked : false,
       priority: sv('priority'),
       operation_team: sv('operation_team'),

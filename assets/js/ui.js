@@ -1,7 +1,7 @@
 export const STATUS_LABELS = {
-  '접수': '접수',
-  'SKB검토중': 'SKB검토중',
-  '2군진행': '2군진행',
+  '접수': '모자분리접수',
+  'SKB검토중': 'SKB검토',
+  '2군진행': 'BP사진행',
   '한전처리중': '한전처리중',
   '완료': '완료',
 };
@@ -77,7 +77,7 @@ export function renderRequestCard(req) {
         ${renderTypeBadge(req.request_type)}
       </div>
       <div class="card-body">
-        <div class="card-row"><b>신청자</b> ${req.requester_name} (${req.requester_org})</div>
+        <div class="card-row"><b>민원인</b> ${req.requester_name} (${req.requester_org})</div>
         <div class="card-row"><b>한전고번</b> ${req.kepco_number}</div>
         ${req.building_name ? `<div class="card-row"><b>건물명</b> ${req.building_name}</div>` : ''}
         <div class="card-row"><b>접수일</b> ${formatDate(req.created_at)}</div>
