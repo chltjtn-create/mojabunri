@@ -20,18 +20,18 @@ export async function getProfile() {
 export async function requireAuth(allowedRoles = null) {
   const session = await getSession();
   if (!session) {
-    window.location.href = '/login.html';
+    window.location.href = 'login.html';
     return null;
   }
 
   const profile = await getProfile();
   if (!profile) {
-    window.location.href = '/login.html';
+    window.location.href = 'login.html';
     return null;
   }
 
   if (allowedRoles && !allowedRoles.includes(profile.role)) {
-    window.location.href = '/dashboard.html';
+    window.location.href = 'dashboard.html';
     return null;
   }
 
@@ -40,7 +40,7 @@ export async function requireAuth(allowedRoles = null) {
 
 export async function logout() {
   await supabase.auth.signOut();
-  window.location.href = '/login.html';
+  window.location.href = 'login.html';
 }
 
 export function renderUserInfo(profile) {
