@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>대시보드 — 모자분리 공사요청</title>
   <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .view-toggle { display:flex; gap:.4rem; }
+    .view-btn { padding:.3rem .7rem; border:1px solid #ced4da; border-radius:5px; background:#fff; cursor:pointer; font-size:.82rem; }
+    .view-btn.active { background:#0052cc; color:#fff; border-color:#0052cc; }
+
+    /* 리스트 테이블 */
+    .list-table { width:100%; border-collapse:collapse; font-size:.82rem; }
+    .list-table thead tr { background:#f1f3f5; border-bottom:2px solid #dee2e6; }
+    .list-table th { padding:.5rem .6rem; text-align:left; font-weight:600; color:#495057; white-space:nowrap; }
+    .list-table tbody tr { border-bottom:1px solid #e9ecef; cursor:pointer; transition:.1s; }
+    .list-table tbody tr:hover { background:#f8f9ff; }
+    .list-table td { padding:.45rem .6rem; vertical-align:middle; }
+    .priority-urgent { color:#dc3545; font-weight:700; }
+    .list-wrap { overflow-x:auto; }
+  </style>
 </head>
 <body>
 
@@ -27,7 +42,7 @@
 
   <!-- 필터 바 -->
   <div class="filter-bar">
-    <input type="text" id="search" placeholder="접수번호·신청자·한전고번 검색" style="width:240px" oninput="applyFilter()">
+    <input type="text" id="search" placeholder="접수번호·건물명·신청자 검색" style="width:220px" oninput="applyFilter()">
     <select id="filter-type" onchange="applyFilter()">
       <option value="">전체 유형</option>
       <option value="신규">신규</option>
@@ -42,36 +57,78 @@
       <option value="한전처리중">한전처리중</option>
       <option value="완료">완료</option>
     </select>
+    <select id="filter-priority" onchange="applyFilter()">
+      <option value="">전체 우선순위</option>
+      <option value="긴급">긴급</option>
+      <option value="보통">보통</option>
+    </select>
     <button class="btn btn-secondary btn-sm" onclick="loadData()">새로고침</button>
     <a href="request-new.html" class="btn btn-primary btn-sm">+ 신규 접수</a>
+    <div class="view-toggle" style="margin-left:auto;">
+      <button class="view-btn active" id="btn-kanban" onclick="setView('kanban')">📋 칸반</button>
+      <button class="view-btn" id="btn-list" onclick="setView('list')">☰ 리스트</button>
+    </div>
   </div>
 
   <!-- 칸반 보드 -->
-  <div class="kanban-board" id="kanban-board">
-    <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#6c757d;">불러오는 중...</div>
+  <div id="view-kanban">
+    <div class="kanban-board" id="kanban-board">
+      <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#6c757d;">불러오는 중...</div>
+    </div>
+  </div>
+
+  <!-- 리스트 뷰 -->
+  <div id="view-list" style="display:none;">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
+        <span id="list-count" style="font-size:.85rem;color:#6c757d;"></span>
+        <button class="btn btn-secondary btn-sm" onclick="exportExcel()">엑셀 다운로드</button>
+      </div>
+      <div class="list-wrap">
+        <table class="list-table">
+          <thead>
+            <tr>
+              <th>접수번호</th>
+              <th>우선순위</th>
+              <th>유형</th>
+              <th>상태</th>
+              <th>건물명</th>
+              <th>운용팀</th>
+              <th>정보센터</th>
+              <th>건물코드</th>
+              <th>신청자</th>
+              <th>SKB담당</th>
+              <th>OPEX</th>
+              <th>CAPEX</th>
+              <th>접수일</th>
+            </tr>
+          </thead>
+          <tbody id="list-tbody"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script type="module">
 import { requireAuth, renderUserInfo, logout as _logout } from './assets/js/auth.js';
 import { fetchRequests } from './assets/js/requests.js';
-import { renderKanban, showToast } from './assets/js/ui.js';
+import { renderKanban, showToast, renderStatusBadge, renderTypeBadge, formatDate, formatMoney } from './assets/js/ui.js';
 
 window.logout = _logout;
 
 let allRequests = [];
 let profile = null;
+let currentView = 'kanban';
 
 (async () => {
   profile = await requireAuth();
   if (!profile) return;
-
   renderUserInfo(profile);
-
   if (profile.role === 'admin' || profile.role === 'skb_manager') {
     document.getElementById('nav-admin').style.display = 'inline';
   }
-
   await loadData();
 })();
 
@@ -85,37 +142,103 @@ window.loadData = async () => {
   }
 };
 
+window.setView = (view) => {
+  currentView = view;
+  document.getElementById('view-kanban').style.display = view === 'kanban' ? 'block' : 'none';
+  document.getElementById('view-list').style.display = view === 'list' ? 'block' : 'none';
+  document.getElementById('btn-kanban').classList.toggle('active', view === 'kanban');
+  document.getElementById('btn-list').classList.toggle('active', view === 'list');
+  applyFilter();
+};
+
 window.applyFilter = () => {
   const search = document.getElementById('search').value.toLowerCase();
   const type = document.getElementById('filter-type').value;
   const status = document.getElementById('filter-status').value;
+  const priority = document.getElementById('filter-priority').value;
 
   const filtered = allRequests.filter(r => {
     const matchSearch = !search ||
       r.request_number?.toLowerCase().includes(search) ||
       r.requester_name?.toLowerCase().includes(search) ||
-      r.kepco_number?.toLowerCase().includes(search) ||
-      r.building_name?.toLowerCase().includes(search);
-    const matchType = !type || r.request_type === type;
-    const matchStatus = !status || r.status === status;
-    return matchSearch && matchType && matchStatus;
+      r.building_name?.toLowerCase().includes(search) ||
+      r.building_code?.toLowerCase().includes(search) ||
+      r.kepco_number?.toLowerCase().includes(search);
+    return matchSearch &&
+      (!type || r.request_type === type) &&
+      (!status || r.status === status) &&
+      (!priority || r.priority === priority);
   });
 
-  document.getElementById('kanban-board').innerHTML = renderKanban(filtered);
+  if (currentView === 'kanban') {
+    document.getElementById('kanban-board').innerHTML = renderKanban(filtered);
+  } else {
+    renderList(filtered);
+  }
+};
+
+function renderList(data) {
+  document.getElementById('list-count').textContent = `총 ${data.length}건`;
+  const tbody = document.getElementById('list-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:2rem;color:#6c757d;">데이터 없음</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(r => `
+    <tr onclick="location.href='request-detail.html?id=${r.id}'">
+      <td style="font-weight:600;color:#0052cc;">${r.request_number}</td>
+      <td class="${r.priority === '긴급' ? 'priority-urgent' : ''}">${r.priority || '보통'}</td>
+      <td>${renderTypeBadge(r.request_type)}</td>
+      <td>${renderStatusBadge(r.status)}</td>
+      <td>${r.building_name || '-'}</td>
+      <td>${r.operation_team || '-'}</td>
+      <td>${r.info_center || '-'}</td>
+      <td style="font-family:monospace;font-size:.78rem;">${r.building_code || '-'}</td>
+      <td>${r.requester_name || '-'}</td>
+      <td>${r.skb_manager?.full_name || '-'}</td>
+      <td style="text-align:right;">${formatMoney(r.opex_amount)}</td>
+      <td style="text-align:right;">${formatMoney(r.capex_amount)}</td>
+      <td>${formatDate(r.created_at)}</td>
+    </tr>
+  `).join('');
+}
+
+window.exportExcel = () => {
+  const headers = ['접수번호','우선순위','유형','상태','건물명','운용팀','정보센터','건물코드','한전고번','신청자','연락처','SKB담당','OPEX','CAPEX','접수일'];
+  const search = document.getElementById('search').value.toLowerCase();
+  const type = document.getElementById('filter-type').value;
+  const status = document.getElementById('filter-status').value;
+  const priority = document.getElementById('filter-priority').value;
+  const filtered = allRequests.filter(r =>
+    (!search || r.request_number?.toLowerCase().includes(search) || r.building_name?.toLowerCase().includes(search) || r.requester_name?.toLowerCase().includes(search)) &&
+    (!type || r.request_type === type) && (!status || r.status === status) && (!priority || r.priority === priority)
+  );
+  const rows = filtered.map(r => [
+    r.request_number, r.priority||'보통', r.request_type, r.status,
+    r.building_name||'', r.operation_team||'', r.info_center||'', r.building_code||'',
+    r.kepco_number||'', r.requester_name||'', r.requester_phone||'',
+    r.skb_manager?.full_name||'', r.opex_amount||0, r.capex_amount||0,
+    new Date(r.created_at).toLocaleDateString('ko-KR')
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '접수목록');
+  XLSX.writeFile(wb, `모자분리_접수목록_${new Date().toLocaleDateString('ko-KR').replace(/\./g,'').replace(/ /g,'')}.xlsx`);
 };
 
 function renderStats(data) {
-  const statuses = ['접수', 'SKB검토중', '2군진행', '한전처리중', '완료'];
+  const statuses = ['접수','SKB검토중','2군진행','한전처리중','완료'];
   const counts = {};
   statuses.forEach(s => counts[s] = 0);
   data.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
+  const urgent = data.filter(r => r.priority === '긴급').length;
 
   document.getElementById('stats-grid').innerHTML = [
     { label: '전체', value: data.length, color: '#0052cc' },
-    { label: '접수', value: counts['접수'], color: '#6c757d' },
+    { label: '긴급', value: urgent, color: '#dc3545' },
     { label: 'SKB검토중', value: counts['SKB검토중'], color: '#0d6efd' },
     { label: '2군진행', value: counts['2군진행'], color: '#fd7e14' },
-    { label: '한전처리중', value: counts['한전처리중'], color: '#dc3545' },
+    { label: '한전처리중', value: counts['한전처리중'], color: '#e63946' },
     { label: '완료', value: counts['완료'], color: '#198754' },
   ].map(s => `
     <div class="stat-card">

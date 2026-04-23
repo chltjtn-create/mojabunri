@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>공사 신청 — 모자분리 공사요청</title>
   <link rel="stylesheet" href="assets/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     .form-section { margin-bottom: .85rem; padding-bottom: .85rem; border-bottom: 1px solid #e9ecef; }
     .form-section:last-of-type { border-bottom: none; }
@@ -121,7 +122,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">건물코드 (SKB 15자리) <span class="required">*</span></label>
-          <input type="text" id="building_code" class="form-control" placeholder="000000000000000" maxlength="15">
+          <input type="text" id="building_code" class="form-control" placeholder="A00000000000001" maxlength="15">
         </div>
         <div class="form-group">
           <label class="form-label">동수 <span class="required">*</span></label>
@@ -176,9 +177,9 @@
       <div class="form-section-title">④ 한전 정보</div>
       <div class="form-grid-2">
         <div class="form-group">
-          <label class="form-label">한전고객번호 <span class="required">*</span></label>
+          <label class="form-label">한전고객번호</label>
           <input type="text" id="kepco_number" class="form-control" placeholder="00-0000-0000" maxlength="12">
-          <p class="form-hint">형식: XX-XXXX-XXXX (숫자+하이픈)</p>
+          <p class="form-hint">형식: XX-XXXX-XXXX (나중에 입력 가능)</p>
         </div>
         <div class="form-group">
           <label class="form-label">CAPEX 공사금액 (원) <span class="required">*</span></label>
@@ -188,20 +189,20 @@
       </div>
     </div>
 
-    <!-- ⑤ 민원인 정보 -->
+    <!-- ⑤ 신청자 정보 -->
     <div class="form-section">
-      <div class="form-section-title">⑤ 민원인 정보 (건물 담당자)</div>
+      <div class="form-section-title">⑤ 신청자 정보 (건물 담당자)</div>
       <div class="form-grid-3">
         <div class="form-group">
-          <label class="form-label">민원인 이름 <span class="required">*</span></label>
+          <label class="form-label">신청자 이름 <span class="required">*</span></label>
           <input type="text" id="complainant_name" class="form-control" placeholder="예: 관리소장">
         </div>
         <div class="form-group">
-          <label class="form-label">민원인 연락처 <span class="required">*</span></label>
+          <label class="form-label">신청자 연락처 <span class="required">*</span></label>
           <input type="tel" id="complainant_phone" class="form-control" placeholder="02-123-4567">
         </div>
         <div class="form-group">
-          <label class="form-label">민원인 이메일 <span class="required">*</span></label>
+          <label class="form-label">신청자 이메일 <span class="required">*</span></label>
           <input type="email" id="complainant_email" class="form-control" placeholder="xxxx@naver.com">
         </div>
       </div>
@@ -218,7 +219,7 @@
             <option value="SKB">SKB</option>
             <option value="HNS">HNS</option>
             <option value="PTCE">PTCE</option>
-            <option value="기타(민원인)">기타(민원인)</option>
+            <option value="기타(신청자)">기타(신청자)</option>
           </select>
         </div>
         <div class="form-group">
@@ -286,6 +287,60 @@
 import { getSession, getProfile, renderUserInfo, logout as _logout } from './assets/js/auth.js';
 import { createRequest, uploadFile } from './assets/js/requests.js';
 import { showToast, showLoading } from './assets/js/ui.js';
+
+// ──────────────────────────────────────────────────
+// EmailJS 설정 (emailjs.com 에서 발급 후 여기에 입력)
+// 설정 방법: 프로젝트_정보.md 의 "이메일 발송 설정" 참고
+const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // Account > API Keys
+const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // Email Services > Service ID
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // Email Templates > Template ID
+// ──────────────────────────────────────────────────
+
+async function sendNotificationEmails(req) {
+  if (!window.emailjs || EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY') {
+    console.warn('EmailJS 미설정 — 이메일 발송 생략');
+    return;
+  }
+  try {
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    const { supabase } = await import('./assets/js/supabase-client.js');
+
+    // 관리자 + 협력사 이메일 조회
+    const { data: recipients } = await supabase
+      .from('profiles')
+      .select('email, full_name, role')
+      .in('role', ['admin', 'partner_bp']);
+
+    if (!recipients?.length) return;
+
+    const detailUrl = `https://chltjtn-create.github.io/mojabunri/request-detail.html?id=${req.id}`;
+    const eqFiles = Array.from(document.getElementById('file-equipment').files);
+    const fileNames = eqFiles.map(f => f.name).join(', ') || '없음';
+
+    for (const r of recipients) {
+      if (!r.email) continue;
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email:          r.email,
+        to_name:           r.full_name || r.email,
+        request_number:    req.request_number,
+        request_type:      req.request_type,
+        priority:          req.priority || '보통',
+        building_name:     req.building_name || '-',
+        building_code:     req.building_code || '-',
+        gwangdanguksa_name: req.gwangdanguksa_name || '-',
+        equipment_install_date: req.equipment_install_date || '-',
+        requester_name:    req.requester_name || '-',
+        requester_phone:   req.requester_phone || '-',
+        requester_email:   req.requester_email || '-',
+        file_names:        fileNames,
+        detail_url:        detailUrl,
+      });
+    }
+    console.log(`이메일 발송 완료 (${recipients.length}명)`);
+  } catch (e) {
+    console.warn('이메일 발송 실패 (접수는 정상 완료):', e.message);
+  }
+}
 
 window.logout = _logout;
 
@@ -357,10 +412,9 @@ window.submitRequest = async () => {
     [sv('billing_type'), '청구유형을 선택하세요.'],
     [v('breaker_location'), '차단기위치를 입력하세요.'],
     [v('meter_location'), '계량기위치를 입력하세요.'],
-    [kepco, '한전고객번호를 입력하세요.'],
-    [v('complainant_name'), '민원인 이름을 입력하세요.'],
-    [v('complainant_phone'), '민원인 연락처를 입력하세요.'],
-    [v('complainant_email'), '민원인 이메일을 입력하세요.'],
+    [v('complainant_name'), '신청자 이름을 입력하세요.'],
+    [v('complainant_phone'), '신청자 연락처를 입력하세요.'],
+    [v('complainant_email'), '신청자 이메일을 입력하세요.'],
     [sv('requester_org'), '요청자 소속을 선택하세요.'],
     [v('requester_name'), '요청자 이름을 입력하세요.'],
     [v('requester_phone'), '요청자 연락처를 입력하세요.'],
@@ -372,12 +426,12 @@ window.submitRequest = async () => {
     if (!val) { errEl.textContent = msg; errEl.style.display = 'block'; return; }
   }
 
-  if (!/^\d{2}-\d{4}-\d{4}$/.test(kepco)) {
+  if (kepco && !/^\d{2}-\d{4}-\d{4}$/.test(kepco)) {
     errEl.textContent = '한전고객번호 형식이 올바르지 않습니다. (예: 12-3456-7890)';
     errEl.style.display = 'block'; return;
   }
-  if (!/^\d{15}$/.test(buildingCode)) {
-    errEl.textContent = '건물코드는 숫자 15자리여야 합니다.';
+  if (!/^[A-Za-z0-9]{15}$/.test(buildingCode)) {
+    errEl.textContent = '건물코드는 영문/숫자 포함 15자리여야 합니다.';
     errEl.style.display = 'block'; return;
   }
 
@@ -426,6 +480,9 @@ window.submitRequest = async () => {
     const docFiles = Array.from(document.getElementById('file-docs').files);
     for (const f of eqFiles) await uploadFile(req.id, req.request_number, req.status, 'document', f);
     for (const f of docFiles) await uploadFile(req.id, req.request_number, req.status, 'document', f);
+
+    // 이메일 알림 발송 (관리자 + 협력사)
+    sendNotificationEmails(req);
 
     showLoading(false);
     showToast(`접수 완료: ${req.request_number}`);
