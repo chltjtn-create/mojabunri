@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>공사 신청 — 모자분리 공사요청</title>
   <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .form-section { margin-bottom: .85rem; padding-bottom: .85rem; border-bottom: 1px solid #e9ecef; }
+    .form-section:last-of-type { border-bottom: none; }
+    .form-section-title { font-weight: 700; font-size: .88rem; color: #0052cc; margin-bottom: .5rem; padding-left: .45rem; border-left: 3px solid #0052cc; }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem .85rem; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .5rem .85rem; }
+    .form-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: .5rem .85rem; }
+    .form-group { margin-bottom: .35rem; }
+    .form-label { margin-bottom: .2rem; font-size: .8rem; }
+    .form-control { padding: .35rem .6rem; font-size: .85rem; }
+    .form-hint { font-size: .73rem; margin-top: .15rem; }
+    .file-input-wrap { border: 2px dashed #ced4da; border-radius: 6px; padding: .6rem; text-align: center; cursor: pointer; font-size: .82rem; color: #6c757d; transition: .15s; }
+    .file-input-wrap:hover { border-color: #0052cc; color: #0052cc; }
+    .file-list-preview { margin-top: .4rem; display: flex; flex-direction: column; gap: .25rem; }
+    .file-preview-item { font-size: .78rem; color: #495057; background: #f8f9fa; padding: .25rem .5rem; border-radius: 4px; display: flex; justify-content: space-between; }
+    @media (max-width: 640px) { .form-grid-2, .form-grid-3, .form-grid-4 { grid-template-columns: 1fr; } }
+  </style>
 </head>
 <body>
 
@@ -17,16 +34,17 @@
   </div>
 </header>
 
-<div class="container" style="max-width:860px;">
+<div class="container" style="max-width:900px;">
   <div class="card">
-    <div class="section-header" style="margin-bottom:1.5rem;">
-      <h2 class="section-title">공사 신청 접수</h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h2 style="font-size:1rem;font-weight:700;">공사 신청 접수</h2>
+      <span style="font-size:.78rem;color:#dc3545;"><span style="font-weight:700;">*</span> 표시는 필수 입력 항목</span>
     </div>
 
     <!-- ① 기본 분류 -->
     <div class="form-section">
-      <div class="form-section-title">기본 분류</div>
-      <div class="form-grid-3">
+      <div class="form-section-title">① 기본 분류</div>
+      <div class="form-grid-4">
         <div class="form-group">
           <label class="form-label">본부</label>
           <input type="text" class="form-control" value="수남" readonly style="background:#f8f9fa;">
@@ -41,17 +59,11 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">우선순위</label>
+          <label class="form-label">우선순위 <span class="required">*</span></label>
           <select id="priority" class="form-control">
             <option value="보통">보통</option>
             <option value="긴급">긴급</option>
           </select>
-        </div>
-      </div>
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label class="form-label">정보센터</label>
-          <input type="text" id="info_center" class="form-control" placeholder="예: 수원, 강남, 용인 등">
         </div>
         <div class="form-group">
           <label class="form-label">요청구분 <span class="required">*</span></label>
@@ -62,29 +74,41 @@
             <option value="변경">변경</option>
             <option value="해지">해지</option>
           </select>
-          <p class="form-hint" id="opex-hint" style="display:none;">대관업무비(OPEX): <b id="opex-value"></b> (자동 계산)</p>
+        </div>
+      </div>
+      <div class="form-grid-2" style="margin-top:.35rem;">
+        <div class="form-group">
+          <label class="form-label">정보센터 <span class="required">*</span></label>
+          <input type="text" id="info_center" class="form-control" placeholder="예: 수원, 강남, 용인">
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;gap:.5rem;">
+          <div id="opex-hint" style="display:none;font-size:.8rem;color:#0052cc;padding:.35rem 0;">
+            대관업무비(OPEX): <b id="opex-value"></b> 자동계산
+          </div>
+          <div id="low-voltage-wrap" style="display:none;">
+            <label style="cursor:pointer;display:flex;align-items:center;gap:.4rem;font-size:.82rem;">
+              <input type="checkbox" id="is_low_voltage" style="accent-color:#0052cc;">
+              저압 케이스 (한전불입금 CAPEX 포함)
+            </label>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- ② 건물 정보 -->
     <div class="form-section">
-      <div class="form-section-title">건물 정보</div>
-      <div class="form-grid-2">
+      <div class="form-section-title">② 건물 정보</div>
+      <div class="form-grid-3">
         <div class="form-group">
           <label class="form-label">건물명 <span class="required">*</span></label>
           <input type="text" id="building_name" class="form-control" placeholder="예: 강남아파트">
         </div>
         <div class="form-group">
-          <label class="form-label">건물주소</label>
+          <label class="form-label">건물주소 <span class="required">*</span></label>
           <input type="text" id="address_text" class="form-control" placeholder="도로명 주소">
         </div>
         <div class="form-group">
-          <label class="form-label">건물코드 (SKB 15자리) <span class="required">*</span></label>
-          <input type="text" id="building_code" class="form-control" placeholder="000000000000000" maxlength="15">
-        </div>
-        <div class="form-group">
-          <label class="form-label">건물유형</label>
+          <label class="form-label">건물유형 <span class="required">*</span></label>
           <select id="building_type" class="form-control">
             <option value="">선택</option>
             <option value="아파트">아파트</option>
@@ -96,34 +120,38 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">동수</label>
+          <label class="form-label">건물코드 (SKB 15자리) <span class="required">*</span></label>
+          <input type="text" id="building_code" class="form-control" placeholder="000000000000000" maxlength="15">
+        </div>
+        <div class="form-group">
+          <label class="form-label">동수 <span class="required">*</span></label>
           <input type="text" id="building_dong" class="form-control" placeholder="예: 3동">
         </div>
         <div class="form-group">
-          <label class="form-label">세대수</label>
+          <label class="form-label">세대수 <span class="required">*</span></label>
           <input type="text" id="household_count" class="form-control" placeholder="예: 150세대">
         </div>
       </div>
     </div>
 
-    <!-- ③ 국사 / 장비 정보 -->
+    <!-- ③ 국사 · 장비 정보 -->
     <div class="form-section">
-      <div class="form-section-title">국사 · 장비 정보</div>
-      <div class="form-grid-2">
+      <div class="form-section-title">③ 국사 · 장비 정보</div>
+      <div class="form-grid-3">
         <div class="form-group">
-          <label class="form-label">국사코드</label>
+          <label class="form-label">국사코드 <span class="required">*</span></label>
           <input type="text" id="gwangdanguksa_code" class="form-control" placeholder="예: W20029">
         </div>
         <div class="form-group">
-          <label class="form-label">국사명</label>
+          <label class="form-label">국사명 <span class="required">*</span></label>
           <input type="text" id="gwangdanguksa_name" class="form-control" placeholder="예: 용인_영덕경기행복주택(GPON)_TYPEB">
         </div>
         <div class="form-group">
-          <label class="form-label">장비설치일 (가용일)</label>
+          <label class="form-label">장비설치일 (가용일) <span class="required">*</span></label>
           <input type="date" id="equipment_install_date" class="form-control">
         </div>
         <div class="form-group">
-          <label class="form-label">청구유형</label>
+          <label class="form-label">청구유형 <span class="required">*</span></label>
           <select id="billing_type" class="form-control">
             <option value="">선택</option>
             <option value="정액제">정액제</option>
@@ -133,11 +161,11 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">차단기위치</label>
+          <label class="form-label">차단기위치 <span class="required">*</span></label>
           <input type="text" id="breaker_location" class="form-control" placeholder="예: 1층 관리소내 MDF">
         </div>
         <div class="form-group">
-          <label class="form-label">계량기위치</label>
+          <label class="form-label">계량기위치 <span class="required">*</span></label>
           <input type="text" id="meter_location" class="form-control" placeholder="예: 1층 관리소내 MDF">
         </div>
       </div>
@@ -145,37 +173,35 @@
 
     <!-- ④ 한전 정보 -->
     <div class="form-section">
-      <div class="form-section-title">한전 정보</div>
+      <div class="form-section-title">④ 한전 정보</div>
       <div class="form-grid-2">
         <div class="form-group">
           <label class="form-label">한전고객번호 <span class="required">*</span></label>
           <input type="text" id="kepco_number" class="form-control" placeholder="00-0000-0000" maxlength="12">
-          <p class="form-hint">형식: XX-XXXX-XXXX</p>
+          <p class="form-hint">형식: XX-XXXX-XXXX (숫자+하이픈)</p>
         </div>
-        <div class="form-group" id="low-voltage-wrap" style="display:none;">
-          <label class="form-label">저압 케이스</label>
-          <label style="cursor:pointer;display:flex;align-items:center;gap:.6rem;margin-top:.5rem;">
-            <input type="checkbox" id="is_low_voltage" style="width:1.1rem;height:1.1rem;accent-color:#0052cc;">
-            <span>저압 케이스 (한전불입금 발생 — CAPEX 포함)</span>
-          </label>
+        <div class="form-group">
+          <label class="form-label">CAPEX 공사금액 (원) <span class="required">*</span></label>
+          <input type="number" id="capex_amount" class="form-control" placeholder="0" min="0">
+          <p class="form-hint">자체 내역서 견적 금액. 저압 시 한전불입금 포함.</p>
         </div>
       </div>
     </div>
 
     <!-- ⑤ 민원인 정보 -->
     <div class="form-section">
-      <div class="form-section-title">민원인 정보 (건물 담당자)</div>
+      <div class="form-section-title">⑤ 민원인 정보 (건물 담당자)</div>
       <div class="form-grid-3">
         <div class="form-group">
-          <label class="form-label">민원인 이름</label>
+          <label class="form-label">민원인 이름 <span class="required">*</span></label>
           <input type="text" id="complainant_name" class="form-control" placeholder="예: 관리소장">
         </div>
         <div class="form-group">
-          <label class="form-label">민원인 연락처</label>
+          <label class="form-label">민원인 연락처 <span class="required">*</span></label>
           <input type="tel" id="complainant_phone" class="form-control" placeholder="02-123-4567">
         </div>
         <div class="form-group">
-          <label class="form-label">민원인 이메일</label>
+          <label class="form-label">민원인 이메일 <span class="required">*</span></label>
           <input type="email" id="complainant_email" class="form-control" placeholder="xxxx@naver.com">
         </div>
       </div>
@@ -183,10 +209,10 @@
 
     <!-- ⑥ 요청자 정보 -->
     <div class="form-section">
-      <div class="form-section-title">요청자 정보</div>
-      <div class="form-grid-3">
+      <div class="form-section-title">⑥ 요청자 정보</div>
+      <div class="form-grid-4">
         <div class="form-group">
-          <label class="form-label">요청자 소속 <span class="required">*</span></label>
+          <label class="form-label">소속 <span class="required">*</span></label>
           <select id="requester_org" class="form-control">
             <option value="">선택</option>
             <option value="SKB">SKB</option>
@@ -196,50 +222,59 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">요청자 이름 <span class="required">*</span></label>
+          <label class="form-label">이름 <span class="required">*</span></label>
           <input type="text" id="requester_name" class="form-control" placeholder="홍길동">
         </div>
         <div class="form-group">
-          <label class="form-label">요청자 연락처 <span class="required">*</span></label>
+          <label class="form-label">연락처 <span class="required">*</span></label>
           <input type="tel" id="requester_phone" class="form-control" placeholder="010-1111-2222">
         </div>
-      </div>
-      <div class="form-grid-2">
         <div class="form-group">
-          <label class="form-label">요청자 이메일 <span class="required">*</span></label>
+          <label class="form-label">이메일 <span class="required">*</span></label>
           <input type="email" id="requester_email" class="form-control" placeholder="xxxx@naver.com">
         </div>
       </div>
     </div>
 
-    <!-- ⑦ 비용 -->
+    <!-- ⑦ 메모 -->
     <div class="form-section">
-      <div class="form-section-title">비용 정보</div>
+      <div class="form-section-title">⑦ 메모</div>
       <div class="form-grid-2">
         <div class="form-group">
-          <label class="form-label">CAPEX 공사금액 (원)</label>
-          <input type="number" id="capex_amount" class="form-control" placeholder="0" min="0">
-          <p class="form-hint">자체 내역서 견적 금액. 저압 시 한전불입금 포함.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- ⑧ 특이사항 / 처리메모 -->
-    <div class="form-section">
-      <div class="form-section-title">메모</div>
-      <div class="form-grid-2">
-        <div class="form-group">
-          <label class="form-label">특이사항</label>
-          <textarea id="notes" class="form-control" rows="3" placeholder="현장 특이사항, 민원 내용 등"></textarea>
+          <label class="form-label">특이사항 <span class="required">*</span></label>
+          <textarea id="notes" class="form-control" rows="2" placeholder="현장 특이사항, 민원 내용 등"></textarea>
         </div>
         <div class="form-group">
           <label class="form-label">처리메모</label>
-          <textarea id="process_memo" class="form-control" rows="3" placeholder="내부 처리 메모"></textarea>
+          <textarea id="process_memo" class="form-control" rows="2" placeholder="내부 처리 메모 (선택)"></textarea>
         </div>
       </div>
     </div>
 
-    <div id="submit-error" style="color:#dc3545;font-size:.85rem;margin-bottom:.75rem;display:none;"></div>
+    <!-- ⑧ 파일 첨부 -->
+    <div class="form-section">
+      <div class="form-section-title">⑧ 파일 첨부</div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">설치장비 List <span class="required">*</span></label>
+          <label class="file-input-wrap" for="file-equipment">
+            📎 파일 선택 (엑셀/PDF)
+            <input type="file" id="file-equipment" multiple accept=".xlsx,.xls,.pdf,.csv" style="display:none" onchange="previewFiles('file-equipment','preview-equipment')">
+          </label>
+          <div class="file-list-preview" id="preview-equipment"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">첨부서류 <span class="required">*</span></label>
+          <label class="file-input-wrap" for="file-docs">
+            📎 파일 선택 (이미지/PDF)
+            <input type="file" id="file-docs" multiple accept=".pdf,.jpg,.jpeg,.png,.gif" style="display:none" onchange="previewFiles('file-docs','preview-docs')">
+          </label>
+          <div class="file-list-preview" id="preview-docs"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="submit-error" style="color:#dc3545;font-size:.83rem;margin-bottom:.6rem;display:none;"></div>
     <div style="display:flex;gap:.75rem;justify-content:flex-end;">
       <a href="dashboard.html" class="btn btn-secondary">취소</a>
       <button class="btn btn-primary" onclick="submitRequest()">접수 신청</button>
@@ -247,18 +282,9 @@
   </div>
 </div>
 
-<style>
-.form-section { margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e9ecef; }
-.form-section:last-of-type { border-bottom: none; }
-.form-section-title { font-weight: 700; font-size: .95rem; color: #0052cc; margin-bottom: .85rem; padding-left: .5rem; border-left: 3px solid #0052cc; }
-.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-@media (max-width: 640px) { .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; } }
-</style>
-
 <script type="module">
 import { getSession, getProfile, renderUserInfo, logout as _logout } from './assets/js/auth.js';
-import { createRequest } from './assets/js/requests.js';
+import { createRequest, uploadFile } from './assets/js/requests.js';
 import { showToast, showLoading } from './assets/js/ui.js';
 
 window.logout = _logout;
@@ -273,7 +299,7 @@ window.logout = _logout;
       document.getElementById('requester_email').value = profile.email || '';
       document.getElementById('requester_name').value = profile.full_name || '';
       document.getElementById('requester_phone').value = profile.phone || '';
-      if (profile.role === 'skb_manager') {
+      if (profile.role === 'skb_manager' || profile.role === 'admin') {
         document.getElementById('requester_org').value = 'SKB';
       }
     }
@@ -285,7 +311,6 @@ window.onTypeChange = () => {
   const hintEl = document.getElementById('opex-hint');
   const opexVal = document.getElementById('opex-value');
   const lowVoltageWrap = document.getElementById('low-voltage-wrap');
-
   if (type) {
     const isNew = type === '신규' || type === '신규_아파트';
     opexVal.textContent = isNew ? '470,000원' : '376,000원';
@@ -298,72 +323,113 @@ window.onTypeChange = () => {
   }
 };
 
+window.previewFiles = (inputId, previewId) => {
+  const files = Array.from(document.getElementById(inputId).files);
+  const preview = document.getElementById(previewId);
+  preview.innerHTML = files.map(f =>
+    `<div class="file-preview-item"><span>${f.name}</span><span>${(f.size/1024).toFixed(0)}KB</span></div>`
+  ).join('');
+};
+
 window.submitRequest = async () => {
   const errEl = document.getElementById('submit-error');
   errEl.style.display = 'none';
 
-  const reqType = document.getElementById('request_type').value;
-  const buildingCode = document.getElementById('building_code').value.trim();
-  const kepco = document.getElementById('kepco_number').value.trim();
-  const name = document.getElementById('requester_name').value.trim();
-  const org = document.getElementById('requester_org').value;
-  const phone = document.getElementById('requester_phone').value.trim();
-  const email = document.getElementById('requester_email').value.trim();
-  const opTeam = document.getElementById('operation_team').value;
-  const buildingName = document.getElementById('building_name').value.trim();
+  const v = id => document.getElementById(id).value.trim();
+  const sv = id => document.getElementById(id).value;
 
-  if (!reqType) { errEl.textContent = '요청구분을 선택하세요.'; errEl.style.display = 'block'; return; }
-  if (!opTeam) { errEl.textContent = '운용팀을 선택하세요.'; errEl.style.display = 'block'; return; }
-  if (!buildingName) { errEl.textContent = '건물명을 입력하세요.'; errEl.style.display = 'block'; return; }
-  if (!buildingCode || !/^\d{15}$/.test(buildingCode)) { errEl.textContent = '건물코드는 숫자 15자리여야 합니다.'; errEl.style.display = 'block'; return; }
-  if (!kepco || !/^\d{2}-\d{4}-\d{4}$/.test(kepco)) { errEl.textContent = '한전고객번호 형식이 올바르지 않습니다. (예: 12-3456-7890)'; errEl.style.display = 'block'; return; }
-  if (!name || !org || !phone || !email) { errEl.textContent = '요청자 정보(소속, 이름, 연락처, 이메일)를 모두 입력하세요.'; errEl.style.display = 'block'; return; }
+  const reqType = sv('request_type');
+  const buildingCode = v('building_code');
+  const kepco = v('kepco_number');
+
+  const required = [
+    [reqType, '요청구분을 선택하세요.'],
+    [sv('operation_team'), '운용팀을 선택하세요.'],
+    [v('info_center'), '정보센터를 입력하세요.'],
+    [v('building_name'), '건물명을 입력하세요.'],
+    [v('address_text'), '건물주소를 입력하세요.'],
+    [sv('building_type'), '건물유형을 선택하세요.'],
+    [v('building_dong'), '동수를 입력하세요.'],
+    [v('household_count'), '세대수를 입력하세요.'],
+    [v('gwangdanguksa_code'), '국사코드를 입력하세요.'],
+    [v('gwangdanguksa_name'), '국사명을 입력하세요.'],
+    [sv('equipment_install_date'), '장비설치일을 선택하세요.'],
+    [sv('billing_type'), '청구유형을 선택하세요.'],
+    [v('breaker_location'), '차단기위치를 입력하세요.'],
+    [v('meter_location'), '계량기위치를 입력하세요.'],
+    [kepco, '한전고객번호를 입력하세요.'],
+    [v('complainant_name'), '민원인 이름을 입력하세요.'],
+    [v('complainant_phone'), '민원인 연락처를 입력하세요.'],
+    [v('complainant_email'), '민원인 이메일을 입력하세요.'],
+    [sv('requester_org'), '요청자 소속을 선택하세요.'],
+    [v('requester_name'), '요청자 이름을 입력하세요.'],
+    [v('requester_phone'), '요청자 연락처를 입력하세요.'],
+    [v('requester_email'), '요청자 이메일을 입력하세요.'],
+    [v('notes'), '특이사항을 입력하세요.'],
+  ];
+
+  for (const [val, msg] of required) {
+    if (!val) { errEl.textContent = msg; errEl.style.display = 'block'; return; }
+  }
+
+  if (!/^\d{2}-\d{4}-\d{4}$/.test(kepco)) {
+    errEl.textContent = '한전고객번호 형식이 올바르지 않습니다. (예: 12-3456-7890)';
+    errEl.style.display = 'block'; return;
+  }
+  if (!/^\d{15}$/.test(buildingCode)) {
+    errEl.textContent = '건물코드는 숫자 15자리여야 합니다.';
+    errEl.style.display = 'block'; return;
+  }
 
   const { supabase } = await import('./assets/js/supabase-client.js');
   const { data: { session } } = await supabase.auth.getSession();
-
   const isNew = reqType === '신규' || reqType === '신규_아파트';
-  const dbType = (reqType === '신규' || reqType === '신규_아파트') ? '신규' : reqType;
-
-  const payload = {
-    request_number: '',
-    request_type: dbType,
-    requester_profile_id: session?.user?.id || null,
-    requester_name: name,
-    requester_org: org,
-    requester_phone: phone,
-    requester_email: email,
-    kepco_number: kepco,
-    building_code: buildingCode,
-    building_name: buildingName || null,
-    address_text: document.getElementById('address_text').value.trim() || null,
-    notes: document.getElementById('notes').value.trim() || null,
-    capex_amount: parseInt(document.getElementById('capex_amount').value || '0'),
-    is_low_voltage: isNew ? document.getElementById('is_low_voltage').checked : false,
-    priority: document.getElementById('priority').value,
-    operation_team: opTeam,
-    info_center: document.getElementById('info_center').value.trim() || null,
-    building_type: document.getElementById('building_type').value || null,
-    building_dong: document.getElementById('building_dong').value.trim() || null,
-    household_count: document.getElementById('household_count').value.trim() || null,
-    gwangdanguksa_code: document.getElementById('gwangdanguksa_code').value.trim() || null,
-    gwangdanguksa_name: document.getElementById('gwangdanguksa_name').value.trim() || null,
-    equipment_install_date: document.getElementById('equipment_install_date').value || null,
-    billing_type: document.getElementById('billing_type').value || null,
-    complainant_name: document.getElementById('complainant_name').value.trim() || null,
-    complainant_phone: document.getElementById('complainant_phone').value.trim() || null,
-    complainant_email: document.getElementById('complainant_email').value.trim() || null,
-    breaker_location: document.getElementById('breaker_location').value.trim() || null,
-    meter_location: document.getElementById('meter_location').value.trim() || null,
-    process_memo: document.getElementById('process_memo').value.trim() || null,
-  };
+  const dbType = isNew ? '신규' : reqType;
 
   showLoading(true);
   try {
-    const req = await createRequest(payload);
+    const req = await createRequest({
+      request_number: '',
+      request_type: dbType,
+      requester_profile_id: session?.user?.id || null,
+      requester_name: v('requester_name'),
+      requester_org: sv('requester_org'),
+      requester_phone: v('requester_phone'),
+      requester_email: v('requester_email'),
+      kepco_number: kepco,
+      building_code: buildingCode,
+      building_name: v('building_name'),
+      address_text: v('address_text'),
+      notes: v('notes'),
+      capex_amount: parseInt(sv('capex_amount') || '0'),
+      is_low_voltage: isNew ? document.getElementById('is_low_voltage').checked : false,
+      priority: sv('priority'),
+      operation_team: sv('operation_team'),
+      info_center: v('info_center'),
+      building_type: sv('building_type'),
+      building_dong: v('building_dong'),
+      household_count: v('household_count'),
+      gwangdanguksa_code: v('gwangdanguksa_code'),
+      gwangdanguksa_name: v('gwangdanguksa_name'),
+      equipment_install_date: sv('equipment_install_date') || null,
+      billing_type: sv('billing_type'),
+      complainant_name: v('complainant_name'),
+      complainant_phone: v('complainant_phone'),
+      complainant_email: v('complainant_email'),
+      breaker_location: v('breaker_location'),
+      meter_location: v('meter_location'),
+      process_memo: v('process_memo') || null,
+    });
+
+    // 파일 업로드
+    const eqFiles = Array.from(document.getElementById('file-equipment').files);
+    const docFiles = Array.from(document.getElementById('file-docs').files);
+    for (const f of eqFiles) await uploadFile(req.id, req.request_number, req.status, 'document', f);
+    for (const f of docFiles) await uploadFile(req.id, req.request_number, req.status, 'document', f);
+
     showLoading(false);
     showToast(`접수 완료: ${req.request_number}`);
-    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
+    setTimeout(() => { window.location.href = `request-detail.html?id=${req.id}`; }, 1500);
   } catch (e) {
     showLoading(false);
     errEl.textContent = '접수 실패: ' + e.message;
