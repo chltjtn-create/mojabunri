@@ -193,19 +193,17 @@
       </div>
     </div>
 
-    <!-- ④ 한전 정보 -->
+    <!-- ④ 비용 정보 -->
     <div class="form-section">
-      <div class="form-section-title">④ 한전 정보</div>
+      <div class="form-section-title">④ 비용 정보</div>
       <div class="form-grid-2">
-        <div class="form-group">
-          <label class="form-label">한전고객번호</label>
-          <input type="text" id="kepco_number" class="form-control" placeholder="00-0000-0000" maxlength="12">
-          <p class="form-hint">형식: XX-XXXX-XXXX (나중에 입력 가능)</p>
-        </div>
         <div class="form-group">
           <label class="form-label">CAPEX 공사금액 (원) <span class="required">*</span></label>
           <input type="number" id="capex_amount" class="form-control" placeholder="0" min="0">
           <p class="form-hint">자체 내역서 견적 금액. 저압 시 한전불입금 포함.</p>
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          <p class="form-hint" style="color:#0052cc;">※ 한전고객번호는 협력사가 모자분리 완료 후 상세 화면에서 입력합니다.</p>
         </div>
       </div>
     </div>
@@ -417,7 +415,6 @@ window.submitRequest = async () => {
 
   const reqType = sv('request_type');
   const buildingCode = v('building_code');
-  const kepco = v('kepco_number');
 
   const required = [
     [reqType, '요청구분을 선택하세요.'],
@@ -448,10 +445,6 @@ window.submitRequest = async () => {
     if (!val) { errEl.textContent = msg; errEl.style.display = 'block'; return; }
   }
 
-  if (kepco && !/^\d{2}-\d{4}-\d{4}$/.test(kepco)) {
-    errEl.textContent = '한전고객번호 형식이 올바르지 않습니다. (예: 12-3456-7890)';
-    errEl.style.display = 'block'; return;
-  }
   if (!/^[A-Za-z0-9]{15}$/.test(buildingCode)) {
     errEl.textContent = '건물코드는 영문/숫자 포함 15자리여야 합니다.';
     errEl.style.display = 'block'; return;
@@ -472,7 +465,6 @@ window.submitRequest = async () => {
       requester_org: sv('requester_org'),
       requester_phone: v('requester_phone'),
       requester_email: v('requester_email'),
-      kepco_number: kepco,
       building_code: buildingCode,
       building_name: v('building_name'),
       address_text: v('address_text'),
