@@ -61,12 +61,25 @@ export function showLoading(show = true) {
 }
 
 export function renderStatusBadge(status) {
-  return `<span class="status-badge" style="background:${STATUS_COLORS[status] || '#aaa'}">${STATUS_LABELS[status] || status}</span>`;
+  const colors = {
+    '접수': { bg: 'var(--gray-100)', text: 'var(--gray-600)' },
+    'SKB검토중': { bg: 'var(--primary-light)', text: 'var(--primary-dark)' },
+    '2군진행': { bg: 'var(--warning-light)', text: 'var(--warning)' },
+    '한전처리중': { bg: 'var(--danger-light)', text: 'var(--danger)' },
+    '완료': { bg: 'var(--success-light)', text: 'var(--success)' },
+  };
+  const theme = colors[status] || { bg: '#eee', text: '#666' };
+  return `<span class="status-badge" style="background:${theme.bg}; color:${theme.text}; border:1px solid rgba(0,0,0,0.05); padding: 0.25rem 0.75rem; border-radius: 6px;">${STATUS_LABELS[status] || status}</span>`;
 }
 
 export function renderTypeBadge(type) {
-  const colors = { '신규': '#0d6efd', '변경': '#fd7e14', '해지': '#dc3545' };
-  return `<span class="type-badge" style="background:${colors[type] || '#aaa'}">${TYPE_LABELS[type] || type}</span>`;
+  const colors = { 
+    '신규': { bg: 'var(--primary-light)', text: 'var(--primary-dark)' }, 
+    '변경': { bg: 'var(--warning-light)', text: 'var(--warning)' }, 
+    '해지': { bg: 'var(--danger-light)', text: 'var(--danger)' } 
+  };
+  const theme = colors[type] || { bg: '#eee', text: '#666' };
+  return `<span class="type-badge" style="background:${theme.bg}; color:${theme.text}; border:1px solid rgba(0,0,0,0.05); padding: 0.25rem 0.75rem; border-radius: 6px;">${TYPE_LABELS[type] || type}</span>`;
 }
 
 export function renderRequestCard(req) {
