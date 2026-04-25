@@ -82,27 +82,7 @@
           </div>
         </div>
 
-        <!-- 비용 및 KPI Section -->
-        <div class="detail-section">
-          <div class="section-title-premium"><i data-lucide="credit-card"></i> 비용 및 실적 정보</div>
-          <div class="info-grid">
-            <div class="info-item"><div class="info-label">대관업무비 (OPEX)</div><div class="info-value" id="d-opex" style="font-weight:700;"></div></div>
-            <div class="info-item">
-              <div class="info-label" style="display:flex;justify-content:space-between;">CAPEX 공사금액 <button class="btn btn-secondary btn-sm" id="btn-edit-capex" onclick="editCapex()" style="padding:2px 6px;font-size:0.7rem;">수정</button></div>
-              <div class="info-value" id="d-capex" style="font-weight:700;color:var(--success);"></div>
-            </div>
-            <div class="info-item">
-              <div class="info-label" style="display:flex;justify-content:space-between;">절감 KW / 금액 (KPI) <button class="btn btn-secondary btn-sm" id="btn-edit-kpi" onclick="editKpi()" style="padding:2px 6px;font-size:0.7rem;">수정</button></div>
-              <div class="info-value" id="d-kpi"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 비고 Section -->
-        <div class="detail-section">
-          <div class="section-title-premium"><i data-lucide="sticky-note"></i> 추가 비고 사항</div>
-          <div id="d-notes" style="font-size:0.95rem;color:var(--gray-600);white-space:pre-wrap;background:var(--gray-50);padding:1rem;border-radius:8px;border:1px solid var(--gray-100);min-height:80px;"></div>
-        </div>
+        <!-- 비고 Section (이 위치에서 삭제하고 아래로 이동) -->
       </div>
 
       <!-- 사이드바 (우측) -->
@@ -139,6 +119,12 @@
           <div id="file-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
         </div>
       </div>
+    </div>
+
+    <!-- 추가 비고 사항 (하단 풀사이즈로 이동) -->
+    <div class="detail-section" style="margin-top:0.5rem;">
+      <div class="section-title-premium"><i data-lucide="sticky-note"></i> 추가 비고 사항</div>
+      <div id="d-notes" style="font-size:0.95rem;color:var(--gray-600);white-space:pre-wrap;background:var(--gray-50);padding:1.25rem;border-radius:10px;border:1px solid var(--gray-100);min-height:100px;line-height:1.6;"></div>
     </div>
 
     <!-- 활동 이력 (하단 풀사이즈) -->
@@ -260,9 +246,13 @@ function renderDetail() {
     lowVoltageRow.style.display = 'none';
   }
 
-  document.getElementById('d-opex').textContent = formatMoney(req.opex_amount);
-  document.getElementById('d-capex').textContent = formatMoney(req.capex_amount);
-  document.getElementById('d-kpi').textContent = `${req.reduction_kw ?? 0} kW / ${formatMoney(req.reduction_amount)}`;
+  // 비용 정보 요소가 삭제되었으므로 업데이트 생략
+  const opexEl = document.getElementById('d-opex');
+  if (opexEl) opexEl.textContent = formatMoney(req.opex_amount);
+  const capexEl = document.getElementById('d-capex');
+  if (capexEl) capexEl.textContent = formatMoney(req.capex_amount);
+  const kpiEl = document.getElementById('d-kpi');
+  if (kpiEl) kpiEl.textContent = `${req.reduction_kw ?? 0} kW / ${formatMoney(req.reduction_amount)}`;
 
   document.getElementById('d-skb-manager').textContent = req.skb_manager?.full_name || '미배정';
   document.getElementById('d-partner-bp').textContent = req.partner_bp?.full_name || '미배정';
@@ -271,19 +261,13 @@ function renderDetail() {
   const canEdit = profile.role === 'admin' || profile.role === 'skb_manager' || profile.role === 'partner_bp';
   const canEditKepco = profile.role === 'admin' || profile.role === 'partner_bp';
   
-  if (!canEdit) {
-    document.getElementById('btn-edit-capex').style.display = 'none';
-    document.getElementById('btn-edit-kpi').style.display = 'none';
-  } else {
-    document.getElementById('btn-edit-capex').style.display = 'inline-flex';
-    document.getElementById('btn-edit-kpi').style.display = 'inline-flex';
-  }
+  const btnCapex = document.getElementById('btn-edit-capex');
+  const btnKpi = document.getElementById('btn-edit-kpi');
+  const btnKepco = document.getElementById('btn-edit-kepco');
   
-  if (canEditKepco) {
-    document.getElementById('btn-edit-kepco').style.display = 'inline-flex';
-  } else {
-    document.getElementById('btn-edit-kepco').style.display = 'none';
-  }
+  if (btnCapex) btnCapex.style.display = canEdit ? 'inline-flex' : 'none';
+  if (btnKpi) btnKpi.style.display = canEdit ? 'inline-flex' : 'none';
+  if (btnKepco) btnKepco.style.display = canEditKepco ? 'inline-flex' : 'none';
 
   renderStatusActions();
   

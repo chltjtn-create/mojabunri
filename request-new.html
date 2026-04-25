@@ -532,6 +532,7 @@ window.submitRequest = async () => {
       breaker_location: v('breaker_location'),
       meter_location: v('meter_location'),
       process_memo: v('process_memo') || null,
+      status: 'SKB검토중'
     });
 
     // 파일 업로드
@@ -641,6 +642,7 @@ async function processBatchRequests(rows) {
         complainant_email: row['민원인이메일'] || '',
         breaker_location: row['차단기위치'] || '',
         meter_location: row['계량기위치'] || '',
+        status: 'SKB검토중'
       });
       successCount++;
     } catch (e) {
