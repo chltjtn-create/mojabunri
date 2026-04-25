@@ -5,8 +5,60 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>공사 상세 — SKB 모자분리 공사요청</title>
   <link rel="stylesheet" href="assets/css/style.css">
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* 접수 화면 스타일 복제 및 개선 */
+    .detail-section {
+      margin-bottom: 1.25rem;
+      padding: 1.25rem 1.5rem;
+      border-radius: 12px;
+      background: #fdfdfd;
+      border: 1px solid #eef2f8;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .detail-section:nth-child(even) { background: #fafbfc; }
+
+    .detail-section-title {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #1a1a2e;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 0.75rem;
+    }
+    .detail-section-title::before {
+      content: attr(data-step);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: .8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .info-grid { display: grid; gap: 1rem 1.5rem; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .grid-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .grid-5 { grid-template-columns: 80px 1fr 1fr 1.5fr 1fr; }
+
+    .field-item { display: flex; flex-direction: column; gap: 0.35rem; }
+    .field-label { font-size: 0.8rem; font-weight: 600; color: #6b7280; }
+    .field-value { font-size: 0.95rem; font-weight: 500; color: #111827; }
+    .field-value b { color: var(--primary); }
+
+    @media (max-width: 768px) {
+      .info-grid { grid-template-columns: 1fr !important; }
+    }
+  </style>
 </head>
 <body>
 
@@ -25,118 +77,135 @@
   </div>
 </header>
 
-<div class="container" style="max-width:1100px;">
+<div class="container" style="max-width:950px;">
   <div id="page-loading" style="text-align:center;padding:5rem;color:#6c757d;">
     <div class="spinner" style="margin: 0 auto 1rem;"></div>
     데이터를 불러오는 중입니다...
   </div>
 
   <div id="page-content" style="display:none;">
-    <!-- 상단 헤더 카드 -->
-    <div class="detail-header-card">
+    <!-- 상단 헤더 섹션 -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; padding:0 0.5rem;">
       <div>
-        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.5rem;">
-          <h2 id="req-number" style="font-size:1.6rem;font-weight:800;color:var(--gray-900);letter-spacing:-0.02em;"></h2>
-          <div id="req-badges" style="display:flex;gap:0.5rem;">
-            <span id="req-type-badge"></span>
-            <span id="req-status-badge"></span>
-          </div>
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.4rem;">
+          <h2 id="req-number" style="font-size:1.5rem; font-weight:800; letter-spacing:-0.03em;"></h2>
+          <span id="req-type-badge"></span>
+          <span id="req-status-badge"></span>
         </div>
-        <div style="font-size:0.9rem;color:var(--gray-600);display:flex;gap:1rem;align-items:center;" id="req-dates-container">
-          <span style="display:flex;align-items:center;gap:0.25rem;"><i data-lucide="calendar" style="width:14px;"></i> <span id="req-date-created"></span></span>
-          <span style="display:flex;align-items:center;gap:0.25rem;"><i data-lucide="clock" style="width:14px;"></i> <span id="req-date-stage"></span></span>
-        </div>
+        <div id="req-dates" style="font-size:0.85rem; color:#6b7280;"></div>
       </div>
-      <div id="status-actions" style="display:flex;gap:0.75rem;"></div>
+      <div id="status-actions" style="display:flex; gap:0.5rem;"></div>
     </div>
 
-    <div class="detail-container">
-      <!-- 메인 영역 (좌측) -->
-      <div class="detail-main">
-        
-        <!-- 민원인 정보 Section -->
-        <div class="detail-section">
-          <div class="section-title-premium"><i data-lucide="user"></i> 민원인 정보</div>
-          <div class="info-grid">
-            <div class="info-item"><div class="info-label">소속 기관</div><div class="info-value" id="d-org"></div></div>
-            <div class="info-item"><div class="info-label">민원인 성함</div><div class="info-value" id="d-name"></div></div>
-            <div class="info-item"><div class="info-label">연락처</div><div class="info-value" id="d-phone"></div></div>
-            <div class="info-item"><div class="info-label">이메일</div><div class="info-value" id="d-email"></div></div>
-          </div>
-        </div>
-
-        <!-- 건물 및 전기 정보 Section -->
-        <div class="detail-section">
-          <div class="section-title-premium"><i data-lucide="building-2"></i> 건물 및 전기 정보</div>
-          <div class="info-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="info-item">
-              <div class="info-label" style="display:flex;justify-content:space-between;">한전고객번호 <button class="btn btn-secondary btn-sm" id="btn-edit-kepco" onclick="editKepco()" style="display:none;padding:2px 6px;font-size:0.7rem;">수정</button></div>
-              <div class="info-value" id="d-kepco" style="font-family:monospace;font-size:1.1rem;color:var(--primary);font-weight:700;"></div>
-            </div>
-            <div class="info-item"><div class="info-label">건물코드 (SKB)</div><div class="info-value" id="d-building-code"></div></div>
-            <div class="info-item" style="grid-column: span 2;"><div class="info-label">건물명</div><div class="info-value" id="d-building-name" style="font-size:1.1rem;font-weight:700;"></div></div>
-            <div class="info-item" style="grid-column: span 2;"><div class="info-label">주소</div><div class="info-value" id="d-address"></div></div>
-          </div>
-          <div id="d-low-voltage-row" style="display:none;margin-top:1rem;padding:0.75rem;background:var(--danger-light);border-radius:8px;color:var(--danger);font-weight:600;display:flex;align-items:center;gap:0.5rem;">
-            <i data-lucide="alert-circle"></i> 저압 케이스: 한전불입금 발생 대상 (CAPEX 포함)
-          </div>
-        </div>
-
-        <!-- 비고 Section (이 위치에서 삭제하고 아래로 이동) -->
+    <!-- ① 기본 분류 -->
+    <div class="detail-section">
+      <div class="detail-section-title" data-step="1">기본 분류</div>
+      <div class="info-grid grid-5">
+        <div class="field-item"><div class="field-label">본부</div><div class="field-value">수남</div></div>
+        <div class="field-item"><div class="field-label">운용팀</div><div class="field-value" id="d-operation-team"></div></div>
+        <div class="field-item"><div class="field-label">정보센터</div><div class="field-value" id="d-info-center"></div></div>
+        <div class="field-item"><div class="field-label">요청구분</div><div class="field-value" id="d-request-type-text"></div></div>
+        <div class="field-item"><div class="field-label">우선순위</div><div class="field-value" id="d-priority"></div></div>
       </div>
-
-      <!-- 사이드바 (우측) -->
-      <div class="detail-sidebar">
-        
-        <!-- 담당자 정보 -->
-        <div class="detail-section" id="card-assignment">
-          <div class="section-title-premium"><i data-lucide="users"></i> 담당자 배정</div>
-          <div class="info-item" style="margin-bottom:1rem;">
-            <div class="info-label">SKB 담당자</div>
-            <div class="info-value" style="display:flex;align-items:center;gap:0.5rem;"><div style="width:24px;height:24px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--primary);font-weight:700;">S</div> <span id="d-skb-manager"></span></div>
-          </div>
-          <div class="info-item">
-            <div class="info-label">협력사 (2군 BP)</div>
-            <div class="info-value" style="display:flex;align-items:center;gap:0.5rem;"><div style="width:24px;height:24px;background:var(--warning-light);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:var(--warning);font-weight:700;">P</div> <span id="d-partner-bp"></span></div>
-          </div>
-        </div>
-
-        <!-- 직인날인 체크리스트 -->
-        <div class="detail-section" id="card-checklist">
-          <div class="section-title-premium"><i data-lucide="check-square"></i> 직인날인 현황</div>
-          <div id="checklist-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
-        </div>
-
-        <!-- 첨부파일 -->
-        <div class="detail-section">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-            <div class="section-title-premium" style="margin-bottom:0;"><i data-lucide="paperclip"></i> 첨부파일</div>
-            <label class="btn btn-primary btn-sm" style="cursor:pointer;padding:4px 8px;font-size:0.75rem;">
-              <i data-lucide="upload" style="width:12px;"></i> 업로드
-              <input type="file" id="file-input" multiple style="display:none" onchange="uploadFiles()">
-            </label>
-          </div>
-          <div id="file-list" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
-        </div>
+      <div id="d-low-voltage-row" style="display:none; margin-top:1rem; padding:0.6rem 1rem; background:var(--danger-light); border-radius:8px; color:var(--danger); font-size:0.85rem; font-weight:600;">
+        ⚠️ 한전불입금 발생 대상 (저압 케이스)
       </div>
     </div>
 
-    <!-- 추가 비고 사항 (하단 풀사이즈로 이동) -->
-    <div class="detail-section" style="margin-top:0.5rem;">
-      <div class="section-title-premium"><i data-lucide="sticky-note"></i> 추가 비고 사항</div>
-      <div id="d-notes" style="font-size:0.95rem;color:var(--gray-600);white-space:pre-wrap;background:var(--gray-50);padding:1.25rem;border-radius:10px;border:1px solid var(--gray-100);min-height:100px;line-height:1.6;"></div>
+    <!-- ② 건물 정보 -->
+    <div class="detail-section">
+      <div class="detail-section-title" data-step="2">건물 정보</div>
+      <div class="info-grid grid-3">
+        <div class="field-item"><div class="field-label">건물명</div><div class="field-value" id="d-building-name" style="font-weight:700;"></div></div>
+        <div class="field-item" style="grid-column: span 2;"><div class="field-label">건물주소</div><div class="field-value" id="d-address"></div></div>
+        <div class="field-item"><div class="field-label">건물유형</div><div class="field-value" id="d-building-type"></div></div>
+        <div class="field-item">
+          <div class="field-label">건물코드 (SKB)</div>
+          <div class="field-value" id="d-building-code" style="font-family:monospace; color:var(--primary);"></div>
+        </div>
+        <div class="field-item">
+          <div class="field-label" style="display:flex; justify-content:space-between;">한전고객번호 <button class="btn btn-secondary btn-sm" id="btn-edit-kepco" onclick="editKepco()" style="padding:1px 5px; font-size:0.7rem;">수정</button></div>
+          <div class="field-value" id="d-kepco" style="font-weight:700;"></div>
+        </div>
+        <div class="field-item"><div class="field-label">동수</div><div class="field-value" id="d-dong"></div></div>
+        <div class="field-item"><div class="field-label">세대수</div><div class="field-value" id="d-household"></div></div>
+      </div>
     </div>
 
-    <!-- 활동 이력 (하단 풀사이즈) -->
-    <div class="detail-section" style="margin-top:0.5rem;">
-      <div class="section-title-premium"><i data-lucide="activity"></i> 프로젝트 활동 이력</div>
+    <!-- ③ 국사 · 장비 정보 -->
+    <div class="detail-section">
+      <div class="detail-section-title" data-step="3">국사 · 장비 정보</div>
+      <div class="info-grid grid-3">
+        <div class="field-item"><div class="field-label">국사코드</div><div class="field-value" id="d-guksa-code"></div></div>
+        <div class="field-item"><div class="field-label">국사명</div><div class="field-value" id="d-guksa-name"></div></div>
+        <div class="field-item"><div class="field-label">장비설치일 (가용일)</div><div class="field-value" id="d-install-date"></div></div>
+        <div class="field-item"><div class="field-label">청구유형</div><div class="field-value" id="d-billing-type"></div></div>
+        <div class="field-item"><div class="field-label">차단기위치</div><div class="field-value" id="d-breaker-loc"></div></div>
+        <div class="field-item"><div class="field-label">계량기위치</div><div class="field-value" id="d-meter-loc"></div></div>
+      </div>
+    </div>
+
+    <!-- ④ 민원인 정보 -->
+    <div class="detail-section">
+      <div class="detail-section-title" data-step="4">민원인 정보 (건물 담당자)</div>
+      <div class="info-grid grid-3">
+        <div class="field-item"><div class="field-label">이름</div><div class="field-value" id="d-complainant-name"></div></div>
+        <div class="field-item"><div class="field-label">연락처</div><div class="field-value" id="d-complainant-phone"></div></div>
+        <div class="field-item"><div class="field-label">이메일</div><div class="field-value" id="d-complainant-email"></div></div>
+      </div>
+    </div>
+
+    <!-- ⑤ 요청자 및 담당자 정보 -->
+    <div class="detail-section">
+      <div class="detail-section-title" data-step="5">요청자 및 배정 정보</div>
+      <div class="info-grid grid-4">
+        <div class="field-item"><div class="field-label">요청자 소속</div><div class="field-value" id="d-req-org"></div></div>
+        <div class="field-item"><div class="field-label">요청자 이름</div><div class="field-value" id="d-req-name"></div></div>
+        <div class="field-item"><div class="field-label">SKB 담당자</div><div class="field-value" id="d-skb-manager"></div></div>
+        <div class="field-item"><div class="field-label">협력사 (2군 BP)</div><div class="field-value" id="d-partner-bp"></div></div>
+      </div>
+    </div>
+
+    <!-- ⑥ 메모 및 실적 -->
+    <div class="detail-section">
+      <div class="detail-section-title" data-step="6">메모 및 직인날인</div>
+      <div class="info-grid grid-2">
+        <div class="field-item">
+          <div class="field-label">특이사항</div>
+          <div class="field-value" id="d-notes" style="background:#f9f9f9; padding:0.75rem; border-radius:6px; white-space:pre-wrap; font-size:0.9rem; min-height:60px;"></div>
+        </div>
+        <div class="field-item">
+          <div class="field-label">직인날인 현황</div>
+          <div id="checklist-list" style="display:flex; flex-direction:column; gap:0.4rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑦ 파일 첨부 -->
+    <div class="detail-section">
+      <div class="detail-section-title" data-step="7">파일 첨부</div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <span style="font-size:0.85rem; color:#6b7280;">첨부된 파일을 확인하거나 새로 업로드할 수 있습니다.</span>
+        <label class="btn btn-primary btn-sm" style="cursor:pointer;">
+          <i data-lucide="upload" style="width:14px;"></i> 파일 업로드
+          <input type="file" id="file-input" multiple style="display:none" onchange="uploadFiles()">
+        </label>
+      </div>
+      <div id="file-list" style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;"></div>
+    </div>
+
+    <!-- 활동 이력 (하단 타임라인) -->
+    <div class="detail-section" style="background:none; border:none; box-shadow:none; padding-left:0; padding-right:0;">
+      <div style="font-weight:700; font-size:1rem; margin-bottom:1.25rem; display:flex; align-items:center; gap:0.5rem;">
+        <i data-lucide="activity" style="color:var(--primary);"></i> 프로젝트 활동 이력
+      </div>
       <div class="timeline-premium" id="timeline-list"></div>
     </div>
 
   </div>
 </div>
 
-<!-- 모달들 (기존 기능 유지) -->
+<!-- 모달 (기존 기능 유지) -->
 <div id="modal-kepco" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;">
   <div class="card" style="width:400px;border-radius:16px;">
     <div class="card-title" style="font-size:1.2rem;margin-bottom:1.5rem;">한전고객번호 입력</div>
@@ -148,38 +217,6 @@
     <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.5rem;">
       <button class="btn btn-secondary" onclick="closeModal('modal-kepco')">취소</button>
       <button class="btn btn-primary" onclick="saveKepco()">저장하기</button>
-    </div>
-  </div>
-</div>
-
-<div id="modal-capex" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;">
-  <div class="card" style="width:360px;border-radius:16px;">
-    <div class="card-title">CAPEX 공사금액 수정</div>
-    <div class="form-group">
-      <label class="form-label">공사금액 (원)</label>
-      <input type="number" id="capex-input" class="form-control" min="0" style="font-size:1.1rem;">
-    </div>
-    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;">
-      <button class="btn btn-secondary" onclick="closeModal('modal-capex')">취소</button>
-      <button class="btn btn-primary" onclick="saveCapex()">저장</button>
-    </div>
-  </div>
-</div>
-
-<div id="modal-kpi" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;">
-  <div class="card" style="width:400px;border-radius:16px;">
-    <div class="card-title">절감 KPI 데이터 수정</div>
-    <div class="form-group">
-      <label class="form-label">연간 절감 KW</label>
-      <input type="number" id="kpi-kw" class="form-control" min="0" step="0.01">
-    </div>
-    <div class="form-group">
-      <label class="form-label">연간 예상 절감금액 (원)</label>
-      <input type="number" id="kpi-amount" class="form-control" min="0">
-    </div>
-    <div style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.5rem;">
-      <button class="btn btn-secondary" onclick="closeModal('modal-kpi')">취소</button>
-      <button class="btn btn-primary" onclick="saveKpi()">저장</button>
     </div>
   </div>
 </div>
@@ -225,96 +262,84 @@ function renderDetail() {
   document.getElementById('req-number').textContent = req.request_number;
   document.getElementById('req-type-badge').innerHTML = renderTypeBadge(req.request_type);
   document.getElementById('req-status-badge').innerHTML = renderStatusBadge(req.status);
-  
-  document.getElementById('req-date-created').textContent = `접수일: ${formatDate(req.created_at)}`;
-  document.getElementById('req-date-stage').textContent = `상태 시작: ${formatDate(req.current_stage_started_at)}`;
+  document.getElementById('req-dates').textContent = `접수일: ${formatDate(req.created_at)}  |  상태 변경일: ${formatDate(req.current_stage_started_at)}`;
 
-  document.getElementById('d-org').textContent = req.requester_org || '-';
-  document.getElementById('d-name').textContent = req.requester_name || '-';
-  document.getElementById('d-phone').textContent = req.requester_phone || '-';
-  document.getElementById('d-email').textContent = req.requester_email || '-';
+  // ① 기본 분류
+  document.getElementById('d-operation-team').textContent = req.operation_team || '-';
+  document.getElementById('d-info-center').textContent = req.info_center || '-';
+  document.getElementById('d-request-type-text').textContent = req.request_type || '-';
+  document.getElementById('d-priority').innerHTML = req.priority === '긴급' ? `<b style="color:var(--danger)">긴급</b>` : '보통';
+  if (req.is_low_voltage) document.getElementById('d-low-voltage-row').style.display = 'block';
 
-  document.getElementById('d-kepco').textContent = req.kepco_number || '고객번호 미입력';
-  document.getElementById('d-building-code').textContent = req.building_code || '-';
+  // ② 건물 정보
   document.getElementById('d-building-name').textContent = req.building_name || '-';
   document.getElementById('d-address').textContent = req.address_text || '-';
-  
-  const lowVoltageRow = document.getElementById('d-low-voltage-row');
-  if (req.is_low_voltage) {
-    lowVoltageRow.style.display = 'flex';
-  } else {
-    lowVoltageRow.style.display = 'none';
-  }
+  document.getElementById('d-building-type').textContent = req.building_type || '-';
+  document.getElementById('d-building-code').textContent = req.building_code || '-';
+  document.getElementById('d-kepco').textContent = req.kepco_number || '미입력';
+  document.getElementById('d-dong').textContent = req.building_dong || '-';
+  document.getElementById('d-household').textContent = req.household_count || '-';
 
-  // 비용 정보 요소가 삭제되었으므로 업데이트 생략
-  const opexEl = document.getElementById('d-opex');
-  if (opexEl) opexEl.textContent = formatMoney(req.opex_amount);
-  const capexEl = document.getElementById('d-capex');
-  if (capexEl) capexEl.textContent = formatMoney(req.capex_amount);
-  const kpiEl = document.getElementById('d-kpi');
-  if (kpiEl) kpiEl.textContent = `${req.reduction_kw ?? 0} kW / ${formatMoney(req.reduction_amount)}`;
+  // ③ 국사 · 장비 정보
+  document.getElementById('d-guksa-code').textContent = req.gwangdanguksa_code || '-';
+  document.getElementById('d-guksa-name').textContent = req.gwangdanguksa_name || '-';
+  document.getElementById('d-install-date').textContent = formatDate(req.equipment_install_date);
+  document.getElementById('d-billing-type').textContent = req.billing_type || '-';
+  document.getElementById('d-breaker-loc').textContent = req.breaker_location || '-';
+  document.getElementById('d-meter-loc').textContent = req.meter_location || '-';
 
+  // ④ 민원인 정보
+  document.getElementById('d-complainant-name').textContent = req.complainant_name || '-';
+  document.getElementById('d-complainant-phone').textContent = req.complainant_phone || '-';
+  document.getElementById('d-complainant-email').textContent = req.complainant_email || '-';
+
+  // ⑤ 요청자 및 담당자
+  document.getElementById('d-req-org').textContent = req.requester_org || '-';
+  document.getElementById('d-req-name').textContent = req.requester_name || '-';
   document.getElementById('d-skb-manager').textContent = req.skb_manager?.full_name || '미배정';
   document.getElementById('d-partner-bp').textContent = req.partner_bp?.full_name || '미배정';
-  document.getElementById('d-notes').textContent = req.notes || '입력된 비고 사항이 없습니다.';
 
-  const canEdit = profile.role === 'admin' || profile.role === 'skb_manager' || profile.role === 'partner_bp';
+  // ⑥ 메모
+  document.getElementById('d-notes').textContent = req.notes || '내용 없음';
+
   const canEditKepco = profile.role === 'admin' || profile.role === 'partner_bp';
-  
-  const btnCapex = document.getElementById('btn-edit-capex');
-  const btnKpi = document.getElementById('btn-edit-kpi');
-  const btnKepco = document.getElementById('btn-edit-kepco');
-  
-  if (btnCapex) btnCapex.style.display = canEdit ? 'inline-flex' : 'none';
-  if (btnKpi) btnKpi.style.display = canEdit ? 'inline-flex' : 'none';
-  if (btnKepco) btnKepco.style.display = canEditKepco ? 'inline-flex' : 'none';
+  document.getElementById('btn-edit-kepco').style.display = canEditKepco ? 'inline-flex' : 'none';
 
   renderStatusActions();
-  
-  // Lucide 아이콘 렌더링
-  if (window.lucide) {
-    window.lucide.createIcons();
-  }
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function renderStatusActions() {
   const el = document.getElementById('status-actions');
-  const cur = req.status;
-  const curIdx = STATUS_ORDER.indexOf(cur);
+  const curIdx = STATUS_ORDER.indexOf(req.status);
   const btns = [];
-
   const canAdvance = profile.role === 'admin' || profile.role === 'skb_manager' || profile.role === 'partner_bp';
   const canRevert = profile.role === 'admin';
 
   if (canAdvance && curIdx < STATUS_ORDER.length - 1) {
-    const next = STATUS_ORDER[curIdx + 1];
-    btns.push(`<button class="btn btn-primary" onclick="doChangeStatus('${next}')" style="box-shadow: 0 4px 10px rgba(0,82,204,0.2);">다음 단계로 <i data-lucide="arrow-right" style="width:14px;"></i></button>`);
+    btns.push(`<button class="btn btn-primary" onclick="doChangeStatus('${STATUS_ORDER[curIdx+1]}')">다음 단계로 →</button>`);
   }
   if (canRevert && curIdx > 0) {
-    const prev = STATUS_ORDER[curIdx - 1];
-    btns.push(`<button class="btn btn-secondary btn-sm" onclick="doChangeStatus('${prev}')" style="color:var(--danger);">이전 단계 <i data-lucide="rotate-ccw" style="width:14px;"></i></button>`);
+    btns.push(`<button class="btn btn-secondary btn-sm" onclick="doChangeStatus('${STATUS_ORDER[curIdx-1]}')" style="color:var(--danger)">이전 단계로</button>`);
   }
-
   el.innerHTML = btns.join('');
-  if (window.lucide) window.lucide.createIcons();
 }
 
 async function loadEvents() {
-  const { fetchEvents: fe } = await import('./assets/js/requests.js');
-  const events = await fe(reqId);
+  const events = await fetchEvents(reqId);
   const el = document.getElementById('timeline-list');
-  if (!events.length) { el.innerHTML = '<div style="color:#6c757d;font-size:.85rem;padding:1rem;">이력이 없습니다.</div>'; return; }
+  if (!events.length) { el.innerHTML = '<div style="color:#6c757d;padding:1rem;">이력이 없습니다.</div>'; return; }
   el.innerHTML = events.map(e => `
     <div class="timeline-item-premium">
       <div class="timeline-dot"></div>
       <div class="timeline-content-premium">
-        <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem;">
-          <span style="font-weight:700;font-size:0.85rem;color:var(--gray-900);">${e.actor?.full_name || '시스템'}</span>
-          <span style="font-size:0.75rem;color:var(--gray-400);">${formatDateTime(e.created_at)}</span>
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.2rem;">
+          <span style="font-weight:700;font-size:0.85rem;">${e.actor?.full_name || '시스템'}</span>
+          <span style="font-size:0.75rem;color:#9ca3af;">${formatDateTime(e.created_at)}</span>
         </div>
-        <div style="font-size:0.9rem;color:var(--gray-600);">
+        <div style="font-size:0.9rem;color:#4b5563;">
           ${e.event_type === 'status_changed' ? `<span style="color:var(--primary);font-weight:600;">[상태변경]</span> ${e.from_status} → <b>${e.to_status}</b>` : e.event_type}
-          ${e.event_message ? `<div style="margin-top:0.25rem;padding-top:0.25rem;border-top:1px solid rgba(0,0,0,0.03);font-style:italic;">"${e.event_message}"</div>` : ''}
+          ${e.event_message ? `<div style="margin-top:0.25rem; font-style:italic; opacity:0.8;">"${e.event_message}"</div>` : ''}
         </div>
       </div>
     </div>
@@ -322,57 +347,50 @@ async function loadEvents() {
 }
 
 async function loadChecklists() {
-  if (req.request_type !== '신규') { document.getElementById('card-checklist').style.display = 'none'; return; }
-  const { fetchChecklists: fc, updateChecklist: uc } = await import('./assets/js/requests.js');
-  const items = await fc(reqId);
+  if (req.request_type !== '신규') { document.getElementById('checklist-list').parentElement.style.display = 'none'; return; }
+  const items = await fetchChecklists(reqId);
   const el = document.getElementById('checklist-list');
-  if (!items.length) { el.innerHTML = '<p style="font-size:.85rem;color:#6c757d;">항목 없음</p>'; return; }
   el.innerHTML = items.map(item => `
-    <div class="checklist-item ${item.is_completed ? 'done' : ''}" id="cl-${item.id}" style="padding: 0.5rem 0.75rem;">
+    <div class="checklist-item ${item.is_completed ? 'done' : ''}" style="padding:0.4rem 0.75rem;">
       <input type="checkbox" ${item.is_completed ? 'checked' : ''} onchange="toggleChecklist('${item.id}', this.checked)">
-      <span style="font-size:0.85rem;font-weight:500;">${CHECKLIST_LABELS[item.checklist_code] || item.checklist_code}</span>
-      ${item.is_completed && item.completed_at ? `<span style="font-size:0.7rem;color:#198754;margin-left:auto;">${formatDate(item.completed_at)}</span>` : ''}
+      <span style="font-size:0.85rem;">${CHECKLIST_LABELS[item.checklist_code] || item.checklist_code}</span>
+      ${item.is_completed && item.completed_at ? `<span style="font-size:0.7rem;color:var(--success);margin-left:auto;">${formatDate(item.completed_at)}</span>` : ''}
     </div>
   `).join('');
 }
 
 async function loadFiles() {
-  const { fetchFiles: ff } = await import('./assets/js/requests.js');
-  const files = await ff(reqId);
+  const files = await fetchFiles(reqId);
   const el = document.getElementById('file-list');
-  if (!files.length) { el.innerHTML = '<p style="font-size:.85rem;color:#6c757d;text-align:center;padding:1rem;">첨부파일이 없습니다.</p>'; return; }
+  if (!files.length) { el.innerHTML = '<div style="grid-column:span 2;text-align:center;padding:1rem;color:#9ca3af;font-size:0.85rem;">첨부파일이 없습니다.</div>'; return; }
   el.innerHTML = files.map(f => {
     const isImg = f.storage_path.match(/\.(jpg|jpeg|png|gif)$/i);
     return `
-    <div class="file-item" style="padding: 0.5rem 0.75rem;">
-      <i data-lucide="${isImg ? 'image' : 'file-text'}" style="width:16px;color:var(--gray-400);"></i>
-      <a href="${getFileUrl(f.storage_path)}" target="_blank" style="font-size:0.85rem;font-weight:500;">${f.original_filename}</a>
-      <span style="font-size:.7rem;color:#6c757d;margin-left:auto;">${f.stage}</span>
-    </div>
-  `}).join('');
+      <div class="file-item" style="padding:0.5rem 0.75rem;">
+        <i data-lucide="${isImg ? 'image' : 'file-text'}" style="width:14px;color:#9ca3af;"></i>
+        <a href="${getFileUrl(f.storage_path)}" target="_blank" style="font-size:0.85rem;overflow:hidden;text-overflow:ellipsis;">${f.original_filename}</a>
+        <span style="font-size:0.7rem;color:#9ca3af;margin-left:auto;white-space:nowrap;">${f.stage}</span>
+      </div>
+    `;
+  }).join('');
   if (window.lucide) window.lucide.createIcons();
 }
 
 window.doChangeStatus = async (toStatus) => {
   if (!confirm(`상태를 "${toStatus}"(으)로 변경하시겠습니까?`)) return;
-  const reason = prompt('변경 사유를 간단히 입력해주세요 (선택사항):', '') || null;
+  const reason = prompt('변경 사유(선택):', '') || null;
   showLoading(true);
   try {
     await changeStatus(reqId, toStatus, profile.id, reason);
     showToast('상태가 변경되었습니다.');
     await loadAll();
-  } catch(e) {
-    showToast('변경 실패: ' + e.message, 'error');
-  } finally { showLoading(false); }
+  } catch(e) { showToast('변경 실패: ' + e.message, 'error'); }
+  finally { showLoading(false); }
 };
 
 window.toggleChecklist = async (id, checked) => {
-  const { updateChecklist: uc } = await import('./assets/js/requests.js');
   try {
-    await uc(id, checked);
-    const el = document.getElementById('cl-' + id);
-    if (el) el.classList.toggle('done', checked);
-    // 상태 리로드 (체크리스트 완료 날짜 표시를 위해)
+    await updateChecklist(id, checked);
     loadChecklists();
   } catch(e) { showToast('저장 실패', 'error'); }
 };
@@ -386,44 +404,10 @@ window.uploadFiles = async () => {
     for (const f of files) {
       await uploadFile(reqId, req.request_number, req.status, f.type.startsWith('image/') ? 'photo' : 'document', f);
     }
-    showToast(`${files.length}개의 파일이 업로드되었습니다.`);
+    showToast('파일 업로드 완료');
     await loadFiles();
-  } catch(e) { showToast('업로드 실패: ' + e.message, 'error'); }
+  } catch(e) { showToast('업로드 실패', 'error'); }
   finally { showLoading(false); input.value = ''; }
-};
-
-window.editCapex = () => {
-  document.getElementById('capex-input').value = req.capex_amount || 0;
-  document.getElementById('modal-capex').style.display = 'flex';
-};
-window.saveCapex = async () => {
-  showLoading(true);
-  try {
-    await updateRequest(reqId, { capex_amount: parseInt(document.getElementById('capex-input').value || '0') });
-    showToast('저장 완료');
-    closeModal('modal-capex');
-    await loadAll();
-  } catch(e) { showToast('저장 실패: ' + e.message, 'error'); }
-  finally { showLoading(false); }
-};
-
-window.editKpi = () => {
-  document.getElementById('kpi-kw').value = req.reduction_kw || 0;
-  document.getElementById('kpi-amount').value = req.reduction_amount || 0;
-  document.getElementById('modal-kpi').style.display = 'flex';
-};
-window.saveKpi = async () => {
-  showLoading(true);
-  try {
-    await updateRequest(reqId, {
-      reduction_kw: parseFloat(document.getElementById('kpi-kw').value || '0'),
-      reduction_amount: parseInt(document.getElementById('kpi-amount').value || '0'),
-    });
-    showToast('저장 완료');
-    closeModal('modal-kpi');
-    await loadAll();
-  } catch(e) { showToast('저장 실패: ' + e.message, 'error'); }
-  finally { showLoading(false); }
 };
 
 window.editKepco = () => {
@@ -432,17 +416,14 @@ window.editKepco = () => {
 };
 window.saveKepco = async () => {
   const val = document.getElementById('kepco-input').value.trim();
-  if (val && !/^\d{2}-\d{4}-\d{4}$/.test(val)) {
-    alert('형식이 올바르지 않습니다. 예: 12-3456-7890 (총 10자리)');
-    return;
-  }
+  if (val && !/^\d{2}-\d{4}-\d{4}$/.test(val)) { alert('형식 오류: XX-XXXX-XXXX'); return; }
   showLoading(true);
   try {
     await updateRequest(reqId, { kepco_number: val || null });
     showToast('저장 완료');
     closeModal('modal-kepco');
     await loadAll();
-  } catch(e) { showToast('저장 실패: ' + e.message, 'error'); }
+  } catch(e) { showToast('저장 실패', 'error'); }
   finally { showLoading(false); }
 };
 
@@ -450,4 +431,3 @@ window.closeModal = (id) => { document.getElementById(id).style.display = 'none'
 </script>
 </body>
 </html>
-
