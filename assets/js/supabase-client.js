@@ -3,4 +3,11 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL = 'https://khytcwhvoipqupthjnaf.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_19gm8-IlREj-y7i-pndxRg_GcFD877X';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    storage: window.sessionStorage,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  }
+});

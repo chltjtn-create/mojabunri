@@ -24,8 +24,10 @@
         <input type="password" id="password" class="form-control" placeholder="비밀번호" autocomplete="current-password">
       </div>
       <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="login()">로그인</button>
-      <div style="text-align:center;margin-top:.75rem;">
-        <a href="#" onclick="showReset()">비밀번호 재설정</a>
+      <div style="text-align:center;margin-top:.75rem;display:flex;justify-content:center;gap:1rem;font-size:0.85rem;">
+        <a href="#" onclick="showReset()" style="color:#6c757d;">비밀번호 재설정</a>
+        <span style="color:#e9ecef;">|</span>
+        <a href="signup.html" style="font-weight:600;color:var(--primary);">회원가입</a>
       </div>
       <div id="login-error" style="color:#dc3545;font-size:.85rem;margin-top:.5rem;display:none;"></div>
     </div>
