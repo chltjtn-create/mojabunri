@@ -60,46 +60,45 @@ window.handleSignup = async () => {
   const password = document.getElementById('password').value;
   const fullName = document.getElementById('full_name').value.trim();
   const department = document.getElementById('department').value.trim();
-  const msgEl = document.getElementById('msg');
 
   if (!email || !password || !fullName || !department) {
     showMsg('모든 필수 항목을 입력해주세요.', 'error');
     return;
   }
-
   if (password.length < 6) {
     showMsg('비밀번호는 최소 6자리 이상이어야 합니다.', 'error');
     return;
   }
 
   try {
-    // 1. Supabase Auth 계정 생성
+    // 1. Auth 계정 생성 (트리거가 profiles에 role='pending' 으로 자동 생성)
     const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: email,
-      password: password
+      email,
+      password,
+      options: { data: { full_name: fullName } }
     });
-
     if (authError) throw authError;
 
+    // 2. department 업데이트 (트리거가 처리 못하는 필드)
     if (authData.user) {
-      // 2. profiles 테이블에 사용자 정보 추가
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert([{
-          id: authData.user.id,
-          email: email,
-          full_name: fullName,
-          department: department,
-          role: 'requester' // 기본 역할은 요청자
-        }]);
-
-      if (profileError) throw profileError;
-
-      showMsg('회원가입이 완료되었습니다! 잠시 후 대시보드로 이동합니다.', 'success');
-      setTimeout(() => {
-        window.location.href = 'dashboard.html';
-      }, 2000);
+      await supabase.from('profiles').update({ department }).eq('id', authData.user.id);
     }
+
+    // 3. 세션 즉시 종료 (가입자가 바로 로그인되는 것 방지)
+    await supabase.auth.signOut();
+
+    // 4. 완료 메시지 표시 후 버튼 숨기기
+    document.getElementById('signup-form').innerHTML = `
+      <div style="text-align:center;padding:1.5rem 0;">
+        <div style="font-size:2.5rem;margin-bottom:1rem;">✅</div>
+        <h3 style="color:#198754;margin-bottom:.75rem;">가입 신청 완료!</h3>
+        <p style="color:#6c757d;font-size:.9rem;line-height:1.6;">
+          관리자 승인 후 로그인하실 수 있습니다.<br>
+          승인이 완료되면 관리자에게 안내받으세요.
+        </p>
+        <a href="login.html" class="btn btn-secondary" style="margin-top:1.5rem;">로그인 화면으로</a>
+      </div>
+    `;
   } catch (error) {
     console.error('Signup error:', error);
     showMsg('가입 실패: ' + error.message, 'error');

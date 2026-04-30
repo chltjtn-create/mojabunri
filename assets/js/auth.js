@@ -41,6 +41,13 @@ export async function requireAuth(allowedRoles = null) {
     return null;
   }
 
+  if (profile.role === 'pending') {
+    if (!location.href.includes('login.html')) {
+      window.location.href = 'login.html?status=pending';
+    }
+    return null;
+  }
+
   if (allowedRoles && !allowedRoles.includes(profile.role)) {
     window.location.href = 'dashboard.html';
     return null;
